@@ -108,8 +108,8 @@ def on_ui_tabs():
 
         previewWidth.change(None, [previewWidth, previewHeight], None, _js="(w,h) => {updateResolution('preview_3d', w, h)}")
         previewHeight.change(None, [previewWidth, previewHeight], None, _js="(w,h) => {updateResolution('preview_3d', w, h)}")
-        panoramaWidth.change(None, [panoramaWidth, panoramaHeight], None, _js="(w,h) => {updateResolution('preview_equirectangular', w, h)}")
-        panoramaHeight.change(None, [panoramaWidth, panoramaHeight], None, _js="(w,h) => {updateResolution('preview_equirectangular', w, h)}")
+        panoramaWidth.change(None, [panoramaWidth, panoramaHeight], None, _js="(w,h) => {updateResolution('preview_equirectangular', w, h, true)}")
+        panoramaHeight.change(None, [panoramaWidth, panoramaHeight], None, _js="(w,h) => {updateResolution('preview_equirectangular', w, h, true)}")
 
         panorama_input_image.change(None, [panorama_input_image], None, 
             _js="(url) => {loadTexture('preview_3d', 'equirectangular', url); loadTexture('preview_equirectangular', 'equirectangular', url)}")

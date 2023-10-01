@@ -21,8 +21,8 @@ textures = {};
 
 async function initialize()
 {
-    shaderViews["preview_3d"] = await setupShaderView('#panotools_preview_canvas','default.vert','panorama_preview.frag');
     shaderViews["preview_equirectangular"] = await setupShaderView('#panotools_equirectangular_canvas','default.vert','equirectangular_preview.frag');
+    shaderViews["preview_3d"] = await setupShaderView('#panotools_preview_canvas','default.vert','panorama_preview.frag');
 
     shaderViews["preview_3d"].textures["equirectangular"] = createPlaceholderTexture(shaderViews["preview_3d"],[255,0,0,255]);
     shaderViews["preview_equirectangular"].textures["equirectangular"] = createPlaceholderTexture(shaderViews["preview_equirectangular"],[0,0,255,255]);
@@ -35,18 +35,27 @@ function redrawView(name)
 {
     if(name === "") //Update all if no view specified
     {
-        for (const [name, shaderView] of Object.entries(shaderViews)) 
+        for (const [viewName, shaderView] of Object.entries(shaderViews)) 
         {
             updateUniforms(shaderView, shaderState);
             drawShaderView(shaderView);
+
+            if(viewName == "preview_equirectangular")
+            {
+                updateCanvasTexture("preview_3d","equirectangular", "preview_equirectangular");
+            }
         }
     }
     else
     {
         updateUniforms(shaderViews[name], shaderState);
         drawShaderView(shaderViews[name]);
-    }
 
+        if(name == "preview_equirectangular")
+        {
+            updateCanvasTexture("preview_3d","equirectangular", "preview_equirectangular");
+        }
+    }
 }
 
 function createPlaceholderTexture(shaderView, color = [0,0,0,255])
@@ -84,6 +93,18 @@ function loadTexture(shaderViewName, name, url)
         redrawView("");
         console.log("updated "+shaderViewName)
     };
+}
+
+function updateCanvasTexture(dstShaderViewName, textureName, srcShaderViewName)
+{
+    var srcShaderViewCanvas = shaderViews[srcShaderViewName].glContext.canvas;
+    var dstShaderView = shaderViews[dstShaderViewName];
+    var gl = dstShaderView.glContext;
+    var texture = dstShaderView.textures[textureName];
+
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, srcShaderViewCanvas);
+    gl.generateMipmap(gl.TEXTURE_2D);
 }
 
 function setParameter(name, value, shaderViewName = "")
@@ -223,11 +244,23 @@ function drawShaderView(shaderView)
     gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT,0);
 }
 
-function updateResolution(name,width,height)
+function copyImageFrom(from, to)
+{
+    
+}
+
+function updateResolution(name,width,height,redrawAll=false)
 {
     shaderViews[name].canvas.width = width;
     shaderViews[name].canvas.height = height;
-    redrawView(name);
+    if(redrawAll)
+    {
+        redrawView("");
+    }
+    else
+    {
+        redrawView(name);
+    }
 }
 
 onUiLoaded(initialize);
