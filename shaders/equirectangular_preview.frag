@@ -23,6 +23,8 @@ uniform sampler2D inpainting;
 
 const float PI = 3.1415926535;
 
+out vec4 fragColor;
+
 vec3 rotateX(vec3 p, float a) 
 {
     float c = cos(a), s = sin(a);
@@ -43,29 +45,16 @@ vec3 rotateY(vec3 p, float a)
     );
 }
 
-vec3 rotateZ(vec3 p, float a) 
-{
-    float c = cos(a), s = sin(a);
-    return vec3(
-        c*p.x-s*p.y,
-        s*p.x+c*p.y,
-        p.z
-    );
-}
-/*
-vec4 texturePlaceholder(sampler2D tex, vec2 uv, float lod)
-{
-    return vec4(cos(uv.xy*PI*10.0),0,1);
-}*/
-
 vec4 samplePanorama(sampler2D tex, vec2 uv, float offsetTop, float offsetBottom)
 {
     uv.y = (uv.y-offsetBottom) / (1.0-offsetTop-offsetBottom);
     uv.y = clamp(uv.y,0.0,1.0);
-
+    uv.y = 1.0 - uv.y;
+    
     if(uv.y == 0.0 || uv.y == 1.0)
     {
-        return texture(tex,uv,6.0);
+        //Use lower resolution mip-map outside image bounds for average color.
+        return texture(tex,uv,8.0); 
     }
     else
     {
@@ -73,8 +62,10 @@ vec4 samplePanorama(sampler2D tex, vec2 uv, float offsetTop, float offsetBottom)
     }
 }
 
-vec4 reorientPanorama(vec2 uv) 
+void main(void) 
 {
+    vec2 uv = gl_FragCoord.xy / resolution;
+
     vec2 ang = (uv-0.5)*vec2(2.0*PI,PI);
     vec3 dir = vec3(sin(ang.x),sin(ang.y),cos(ang.x));
     dir.xz *= cos(ang.y);
@@ -87,7 +78,6 @@ vec4 reorientPanorama(vec2 uv)
     vec2 maskUV = vec2(atan(maskDir.x,maskDir.z), atan(maskDir.y,length(maskDir.xz)));
     maskUV = fract(maskUV/vec2(PI/2.0,PI/2.0) + 0.5);
     maskUV = vec2(0.5*maskDir.xy/maskDir.z+0.5);
-    maskUV.y = 1.0-maskUV.y;
 
     float clip = 0.0;
     if(maskEnable != 0.0)
@@ -106,16 +96,10 @@ vec4 reorientPanorama(vec2 uv)
 
     vec2 texUV = vec2(atan(dir.x,dir.z), atan(dir.y,length(dir.xz)));
     texUV = fract(texUV/vec2(2.0*PI,PI) + 0.5);
-    texUV.y = 1.0-texUV.y;
 
     vec4 col = samplePanorama(equirectangular,texUV, offsetTop, offsetBottom);
     vec4 fill = samplePanorama(inpainting,maskUV, 0.0, 0.0);
     col = mix(col,fill,clip);
-    
-    return vec4(col.rgb,1.0);   
-}
 
-out vec4 fragColor;
-void main(void) {
-    fragColor = reorientPanorama(gl_FragCoord.xy / resolution);
+    fragColor = vec4(col.rgb,1.0);  
 }

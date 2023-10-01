@@ -21,12 +21,14 @@ textures = {};
 
 async function initialize()
 {
-    shaderViews["preview_equirectangular"] = await setupShaderView('#panotools_equirectangular_canvas','default.vert','equirectangular_preview.frag');
+    shaderViews["preview_2d"] = await setupShaderView('#panotools_equirectangular_canvas','default.vert','equirectangular_preview.frag');
     shaderViews["preview_3d"] = await setupShaderView('#panotools_preview_canvas','default.vert','panorama_preview.frag');
+    
+    var previewTexture = createPlaceholderTexture(shaderViews["preview_3d"],"equirectangular",[255,0,0,255]);
+    createPlaceholderTexture(shaderViews["preview_2d"],"equirectangular",[0,0,255,255]);
+    createPlaceholderTexture(shaderViews["preview_2d"],"inpainting",[0,255,0,255]);
 
-    shaderViews["preview_3d"].textures["equirectangular"] = createPlaceholderTexture(shaderViews["preview_3d"],[255,0,0,255]);
-    shaderViews["preview_equirectangular"].textures["equirectangular"] = createPlaceholderTexture(shaderViews["preview_equirectangular"],[0,0,255,255]);
-    shaderViews["preview_equirectangular"].textures["inpainting"] = createPlaceholderTexture(shaderViews["preview_equirectangular"],[0,255,0,255]);
+    shaderViews["preview_2d"].renderToTextures.push(previewTexture);
 
     redrawView("");
 }
@@ -39,26 +41,16 @@ function redrawView(name)
         {
             updateUniforms(shaderView, shaderState);
             drawShaderView(shaderView);
-
-            if(viewName == "preview_equirectangular")
-            {
-                updateCanvasTexture("preview_3d","equirectangular", "preview_equirectangular");
-            }
         }
     }
     else
     {
         updateUniforms(shaderViews[name], shaderState);
         drawShaderView(shaderViews[name]);
-
-        if(name == "preview_equirectangular")
-        {
-            updateCanvasTexture("preview_3d","equirectangular", "preview_equirectangular");
-        }
     }
 }
 
-function createPlaceholderTexture(shaderView, color = [0,0,0,255])
+function createPlaceholderTexture(shaderView, name, color = [0,0,0,255])
 {
     var gl = shaderView.glContext;
     var texture = gl.createTexture();
@@ -73,14 +65,17 @@ function createPlaceholderTexture(shaderView, color = [0,0,0,255])
 
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(color));
 
-    return texture;
+    return shaderView.textures[name] = {
+        glContext : gl,
+        glTexture : texture
+    };
 }
 
 function loadTexture(shaderViewName, name, url)
 {
     var shaderView = shaderViews[shaderViewName];
     var gl = shaderView.glContext;
-    var texture = shaderView.textures[name];
+    var texture = shaderView.textures[name].glTexture;
 
     var image = new Image();
     image.src = url;
@@ -95,12 +90,12 @@ function loadTexture(shaderViewName, name, url)
     };
 }
 
-function updateCanvasTexture(dstShaderViewName, textureName, srcShaderViewName)
+function updateCanvasTexture(dstShaderView, textureName, srcShaderViewName)
 {
     var srcShaderViewCanvas = shaderViews[srcShaderViewName].glContext.canvas;
-    var dstShaderView = shaderViews[dstShaderViewName];
+    var dstShaderView = dstShaderViewName;
     var gl = dstShaderView.glContext;
-    var texture = dstShaderView.textures[textureName];
+    var texture = dstShaderView.textures[textureName].glTexture;
 
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, srcShaderViewCanvas);
@@ -212,7 +207,8 @@ async function setupShaderView(canvasId, vertShaderName, fragShaderName)
         shaderProgram: shaderProgram,
         vertexBuffer: vertex_buffer,
         indexBuffer: Index_Buffer,
-        textures: {}
+        textures: {},
+        renderToTextures: []
     }
 }
 
@@ -237,11 +233,21 @@ function drawShaderView(shaderView)
         var texLoc = gl.getUniformLocation(shaderView.shaderProgram, name);
         gl.uniform1i(texLoc, unit);  
         gl.activeTexture(gl.TEXTURE0+unit);
-        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.bindTexture(gl.TEXTURE_2D, texture.glTexture);
         unit++;
     }
 
     gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT,0);
+
+    for(const renderToTexture of shaderView.renderToTextures)
+    {
+        var dstGLContext = renderToTexture.glContext;
+        var texture = renderToTexture.glTexture;
+    
+        dstGLContext.bindTexture(gl.TEXTURE_2D, texture);
+        dstGLContext.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, gl.canvas);
+        dstGLContext.generateMipmap(gl.TEXTURE_2D);
+    }
 }
 
 function copyImageFrom(from, to)

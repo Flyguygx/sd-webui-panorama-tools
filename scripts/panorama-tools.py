@@ -63,10 +63,9 @@ def on_ui_tabs():
                         inpaintZoom = gr.Slider(label="Zoom  ", minimum=0, maximum=10, value=1, step=0.025, interactive=True)
                         inpaintMaskBlur = gr.Slider(label="Mask Blur", minimum=0, maximum=10, value=1, step=0.025, interactive=True)
                         copyPreviewSettings = gr.Button(value="Copy Preview Settings")
-                        patchMaskBlur = gr.Slider(label="Mask Blur", minimum=0, maximum=1, value=0, step=0.01, interactive=True)
 
                 with gr.Row():
-                    with gr.Accordion("Editing", open=True, elem_id="panorama_tools_edit", visible=True):
+                    with gr.Accordion("Adjustments", open=True, elem_id="panorama_tools_edit", visible=True):
                         reorientPitch = gr.Slider(label="Reorient Pitch   ", minimum=-90, maximum=90, value=0, step=0.5, interactive=True)
                         reorientYaw = gr.Slider(label="Reorient Yaw   ", minimum=-180, maximum=180, value=0, step=0.5, interactive=True)
                         offsetBottom = gr.Slider(label="Lower Pole Offset", minimum=0, maximum=1, value=0, step=0.01, interactive=True)
@@ -108,14 +107,14 @@ def on_ui_tabs():
 
         previewWidth.change(None, [previewWidth, previewHeight], None, _js="(w,h) => {updateResolution('preview_3d', w, h)}")
         previewHeight.change(None, [previewWidth, previewHeight], None, _js="(w,h) => {updateResolution('preview_3d', w, h)}")
-        panoramaWidth.change(None, [panoramaWidth, panoramaHeight], None, _js="(w,h) => {updateResolution('preview_equirectangular', w, h, true)}")
-        panoramaHeight.change(None, [panoramaWidth, panoramaHeight], None, _js="(w,h) => {updateResolution('preview_equirectangular', w, h, true)}")
+        panoramaWidth.change(None, [panoramaWidth, panoramaHeight], None, _js="(w,h) => {updateResolution('preview_2d', w, h, true)}")
+        panoramaHeight.change(None, [panoramaWidth, panoramaHeight], None, _js="(w,h) => {updateResolution('preview_2d', w, h, true)}")
 
         panorama_input_image.change(None, [panorama_input_image], None, 
-            _js="(url) => {loadTexture('preview_3d', 'equirectangular', url); loadTexture('preview_equirectangular', 'equirectangular', url)}")
+            _js="(url) => {loadTexture('preview_3d', 'equirectangular', url); loadTexture('preview_2d', 'equirectangular', url)}")
         
         panorama_inpaint_input_image.change(None, [panorama_inpaint_input_image], None, 
-            _js="(url) => {loadTexture('preview_equirectangular', 'inpainting', url)}")
+            _js="(url) => {loadTexture('preview_2d', 'inpainting', url)}")
 
     return [(panorama_tools_ui, "Panorama Tools", "panorama-tools")]
 

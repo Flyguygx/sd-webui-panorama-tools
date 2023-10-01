@@ -6,10 +6,11 @@ uniform vec2 resolution;
 uniform float pitch;
 uniform float yaw;
 uniform float zoom;
-
 uniform sampler2D equirectangular;
 
 const float PI = 3.1415926535;
+
+out vec4 fragColor;
 
 vec3 rotateX(vec3 p, float a) 
 {
@@ -31,23 +32,10 @@ vec3 rotateY(vec3 p, float a)
     );
 }
 
-vec3 rotateZ(vec3 p, float a) 
+void main(void) 
 {
-    float c = cos(a), s = sin(a);
-    return vec3(
-        c*p.x-s*p.y,
-        s*p.x+c*p.y,
-        p.z
-    );
-}
+    vec2 uv = gl_FragCoord.xy / resolution;
 
-vec4 texturePlaceholder(sampler2D tex, vec2 uv, float lod)
-{
-    return vec4(cos(uv.xy*PI*10.0),0,1);
-}
-
-vec4 previewPanorama(vec2 uv) 
-{ 
     vec3 dir = normalize(vec3(2.0*uv-1.0, zoom));
     dir = rotateX(dir, radians(pitch));
     dir = rotateY(dir, radians(yaw));
@@ -58,10 +46,5 @@ vec4 previewPanorama(vec2 uv)
 
     vec4 col = texture(equirectangular, texUV,0.0);
 
-    return vec4(col.rgb,1.0); 
-}
-
-out vec4 fragColor;
-void main(void) {
-    fragColor = previewPanorama(gl_FragCoord.xy / resolution);
+    fragColor = vec4(col.rgb,1.0); 
 }
