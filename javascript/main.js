@@ -1,4 +1,3 @@
-
 shaderState =
 {
     yaw: ["float", 0.0],
@@ -19,14 +18,17 @@ shaderViews = {};
 
 textures = {};
 
+defaultColor = [128,128,128,255]
+
 async function initialize()
 {
+    
     shaderViews["preview_2d"] = await setupShaderView('#panotools_equirectangular_canvas','default.vert','equirectangular_preview.frag');
     shaderViews["preview_3d"] = await setupShaderView('#panotools_preview_canvas','default.vert','panorama_preview.frag');
     
-    var previewTexture = createPlaceholderTexture(shaderViews["preview_3d"],"equirectangular",[255,0,0,255]);
-    createPlaceholderTexture(shaderViews["preview_2d"],"equirectangular",[0,0,255,255]);
-    createPlaceholderTexture(shaderViews["preview_2d"],"inpainting",[0,255,0,255]);
+    var previewTexture = createPlaceholderTexture(shaderViews["preview_3d"], "equirectangular", defaultColor);
+    createPlaceholderTexture(shaderViews["preview_2d"], "equirectangular", defaultColor);
+    createPlaceholderTexture(shaderViews["preview_2d"], "inpainting", defaultColor);
 
     shaderViews["preview_2d"].renderToTextures.push(previewTexture);
 
@@ -77,17 +79,25 @@ function loadTexture(shaderViewName, name, url)
     var gl = shaderView.glContext;
     var texture = shaderView.textures[name].glTexture;
 
-    var image = new Image();
-    image.src = url;
-    image.onload = function() 
+    if(url)
+    {
+        var image = new Image();
+        image.src = url;
+        image.onload = function() 
+        {
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, image);
+            gl.generateMipmap(gl.TEXTURE_2D);
+
+            redrawView("");
+        };
+    }
+    else //Handle image being cleared
     {
         gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, image);
-        gl.generateMipmap(gl.TEXTURE_2D);
-
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(defaultColor));
         redrawView("");
-        console.log("updated "+shaderViewName)
-    };
+    }
 }
 
 function updateCanvasTexture(dstShaderView, textureName, srcShaderViewName)
@@ -166,7 +176,7 @@ async function loadShader(gl, name, type)
 async function setupShaderView(canvasId, vertShaderName, fragShaderName)
 {
     var canvas = gradioApp().querySelector(canvasId);
-    gl = canvas.getContext('webgl2');
+    gl = canvas.getContext('webgl2', {preserveDrawingBuffer:true});
 
     var vertices = [
         -1, -1, 0,
@@ -267,6 +277,41 @@ function updateResolution(name,width,height,redrawAll=false)
     {
         redrawView(name);
     }
+}
+
+function currentPanoramaInputResolution() {
+    var img = gradioApp().querySelector('#panorama_input_image img');
+    return img ? [img.naturalWidth/4, img.naturalHeight/2, img.naturalWidth, img.naturalHeight] : [0, 0, 0, 0];
+}
+
+function getSelectedImageOnTab(tab)
+{
+    var queryStr = (tab === "txt2img") ? "#txt2img_gallery img" :
+                   (tab === "img2img") ? "#img2img_gallery img" :
+                   (tab === "extras") ? "#extras_gallery img" :
+                   null;
+    
+    var img = gradioApp().querySelector(queryStr);
+
+    if(tab !== null && img)
+    {
+        return img.src;
+    }
+    return ""
+}
+
+function getSelectedImageOnTxt2Img() { return getSelectedImageOnTab("txt2img"); }
+function getSelectedImageOnImg2Img() { return getSelectedImageOnTab("img2img"); }
+function getSelectedImageOnExtras() { return getSelectedImageOnTab("extras"); }
+
+function get2DImage() 
+{ 
+    return shaderViews["preview_2d"].canvas.toDataURL();
+}
+
+function get3DImage() 
+{ 
+    return shaderViews["preview_3d"].canvas.toDataURL();
 }
 
 onUiLoaded(initialize);
