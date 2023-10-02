@@ -260,11 +260,6 @@ function drawShaderView(shaderView)
     }
 }
 
-function copyImageFrom(from, to)
-{
-    
-}
-
 function updateResolution(name,width,height,redrawAll=false)
 {
     shaderViews[name].canvas.width = width;
@@ -300,18 +295,18 @@ function getSelectedImageOnTab(tab)
     return ""
 }
 
-function getSelectedImageOnTxt2Img() { return getSelectedImageOnTab("txt2img"); }
-function getSelectedImageOnImg2Img() { return getSelectedImageOnTab("img2img"); }
-function getSelectedImageOnExtras() { return getSelectedImageOnTab("extras"); }
-
-function get2DImage() 
-{ 
-    return shaderViews["preview_2d"].canvas.toDataURL();
+function getShaderViewImage(shaderViewName)
+{
+    return shaderViews[shaderViewName].canvas.toDataURL();
 }
 
-function get3DImage() 
-{ 
-    return shaderViews["preview_3d"].canvas.toDataURL();
+function sendShaderViewTo(shaderViewName, tab)
+{
+    if(tab === "img2img"){ switch_to_img2img() }
+    if(tab === "inpaint"){ switch_to_inpaint() }
+    if(tab === "extras"){ switch_to_extras() } 
+
+    return shaderViews[shaderViewName].canvas.toDataURL();
 }
 
 onUiLoaded(initialize);

@@ -110,28 +110,41 @@ def on_ui_tabs():
     
         copyPreviewSettings.click(copy_preview_settings, inputs=[previewPitch,previewYaw,previewZoom], outputs=[inpaintPitch,inpaintYaw,inpaintZoom])
         
-        copyPanoramaInputRes.click(
-                fn=None,
-                _js="currentPanoramaInputResolution",
-                inputs=[],
-                outputs=[previewWidth, previewHeight, panoramaWidth, panoramaHeight],
-                show_progress=False
-                )
+        copyPanoramaInputRes.click(fn=None,inputs=[],outputs=[previewWidth, previewHeight, panoramaWidth, panoramaHeight],show_progress=False,
+                                   _js="currentPanoramaInputResolution")
         
-        copyPanoramaFromTxt2Img.click(fn=None, _js="getSelectedImageOnTxt2Img",inputs=[],outputs=[panorama_input_image],show_progress=False)
-        copyPanoramaFromImg2Img.click(fn=None, _js="getSelectedImageOnImg2Img",inputs=[],outputs=[panorama_input_image],show_progress=False)
-        copyPanoramaFromExtras.click(fn=None, _js="getSelectedImageOnExtras",inputs=[],outputs=[panorama_input_image],show_progress=False)
-        copyPanoramaFromOutput.click(fn=None, _js="get2DImage",inputs=[],outputs=[panorama_input_image],show_progress=False)
+        copyPanoramaFromTxt2Img.click(fn=None,inputs=[],outputs=[panorama_input_image],show_progress=False,
+                                      _js="() => {return getSelectedImageOnTab('txt2img')}")
+        
+        copyPanoramaFromImg2Img.click(fn=None,inputs=[],outputs=[panorama_input_image],show_progress=False,
+                                      _js="() => {return getSelectedImageOnTab('img2img')}")
+        
+        copyPanoramaFromExtras.click(fn=None,inputs=[],outputs=[panorama_input_image],show_progress=False,
+                                     _js="() => {return getSelectedImageOnTab('extras')}")
+        
+        copyPanoramaFromOutput.click(fn=None,inputs=[],outputs=[panorama_input_image],show_progress=False,
+                                     _js="() => {return getShaderViewImage('preview_2d')}")
 
-        copyInpaintFromImg2Img.click(fn=None, _js="getSelectedImageOnImg2Img",inputs=[],outputs=[panorama_inpaint_input_image],show_progress=False)
+        copyInpaintFromImg2Img.click(fn=None,inputs=[],outputs=[panorama_inpaint_input_image],show_progress=False,
+                                     _js="() => {return getSelectedImageOnTab('img2img')}")
 
-        send2DImgToImg2Img.click(fn=None, _js="get2DImage",inputs=[],outputs=[sendto_inputs["img2img"]["component"]],show_progress=False)
-        send2DImgToInpaint.click(fn=None, _js="get2DImage",inputs=[],outputs=[sendto_inputs["inpaint"]["component"]],show_progress=False)
-        send2DImgToExtras.click(fn=None, _js="get2DImage",inputs=[],outputs=[sendto_inputs["extras"]["component"]],show_progress=False)
+        send2DImgToImg2Img.click(fn=None,inputs=[],outputs=[sendto_inputs["img2img"]["component"]],show_progress=False,
+                                 _js="() => {return sendShaderViewTo('preview_2d','img2img')}")
+        
+        send2DImgToInpaint.click(fn=None,inputs=[],outputs=[sendto_inputs["inpaint"]["component"]],show_progress=False,
+                                 _js="() => {return sendShaderViewTo('preview_2d','inpaint')}")
+        
+        send2DImgToExtras.click(fn=None,inputs=[],outputs=[sendto_inputs["extras"]["component"]],show_progress=False,
+                                _js="() => {return sendShaderViewTo('preview_2d','extras')}")
 
-        send3DImgToImg2Img.click(fn=None, _js="get3DImage",inputs=[],outputs=[sendto_inputs["img2img"]["component"]],show_progress=False)
-        send3DImgToInpaint.click(fn=None, _js="get3DImage",inputs=[],outputs=[sendto_inputs["inpaint"]["component"]],show_progress=False)
-        send3DImgToExtras.click(fn=None, _js="get3DImage",inputs=[],outputs=[sendto_inputs["extras"]["component"]],show_progress=False)
+        send3DImgToImg2Img.click(fn=None,inputs=[],outputs=[sendto_inputs["img2img"]["component"]],show_progress=False,
+                                 _js="() => {return sendShaderViewTo('preview_3d','img2img')}")
+        
+        send3DImgToInpaint.click(fn=None,inputs=[],outputs=[sendto_inputs["inpaint"]["component"]],show_progress=False,
+                                 _js="() => {return sendShaderViewTo('preview_3d','inpaint')}")
+        
+        send3DImgToExtras.click(fn=None,inputs=[],outputs=[sendto_inputs["extras"]["component"]],show_progress=False,
+                                _js="() => {return sendShaderViewTo('preview_3d','extras')}")
         
         previewPitch.change(None, [previewPitch], None, _js="(v) => {setParameter('pitch', v, 'preview_3d')}")
         previewYaw.change(None, [previewYaw], None, _js="(v) => {setParameter('yaw', v, 'preview_3d')}")
