@@ -14,6 +14,8 @@ shaderState =
     offsetBottom: ["float", 0.0]
 }
 
+preview3DDrag = false;
+
 shaderViews = {};
 
 textures = {};
@@ -25,6 +27,10 @@ async function initialize()
     
     shaderViews["preview_2d"] = await setupShaderView('#panotools_equirectangular_canvas','default.vert','equirectangular_preview.frag');
     shaderViews["preview_3d"] = await setupShaderView('#panotools_preview_canvas','default.vert','panorama_preview.frag');
+    shaderViews["preview_3d"].canvas.onmousedown = function(e){if(e.buttons&1 === 1){preview3DDrag = true;}}
+    shaderViews["preview_3d"].canvas.onmouseup = function(e){if(e.buttons&1 === 1){preview3DDrag = false;}}
+    shaderViews["preview_3d"].canvas.onmousemove = function(e){preview3DMouseMove(e)};
+    shaderViews["preview_3d"].canvas.onwheel = function(e){preview3DMouseWheel(e)};
     
     var previewTexture = createPlaceholderTexture(shaderViews["preview_3d"], "equirectangular", defaultColor);
     createPlaceholderTexture(shaderViews["preview_2d"], "equirectangular", defaultColor);
@@ -33,6 +39,49 @@ async function initialize()
     shaderViews["preview_2d"].renderToTextures.push(previewTexture);
 
     redrawView("");
+}
+
+function preview3DMouseMove(e)
+{
+    if(preview3DDrag)
+    {
+        if(e.buttons&1 === 1)
+        {
+            var canvasWidth = shaderViews["preview_3d"].canvas.width;
+            var zoom = shaderState.zoom[1];
+            var dragAmount = (180.0/Math.PI)*Math.atan(1.0/zoom)/(canvasWidth/2);
+            
+            var yaw = shaderState.yaw[1] - dragAmount*e.movementX;
+            var pitch = shaderState.pitch[1] - dragAmount*e.movementY;
+
+            pitch = Math.max(-90,Math.min(90,pitch));
+            yaw = ((yaw+180) % 360)-180;
+
+            setParameter('yaw', yaw, 'preview_3d')
+            setParameter('pitch', pitch, 'preview_3d')
+        }
+        else
+        {
+            preview3DDrag = false;
+        }
+    }
+}
+
+function preview3DMouseWheel(e)
+{
+    var zoom = shaderState.zoom[1];
+
+    if(e.deltaY < 0)
+    {
+        zoom = zoom*1.1;
+    }
+    else
+    {
+        zoom = zoom/1.1;
+    }
+    
+    setParameter('zoom', zoom, 'preview_3d')
+    e.preventDefault();
 }
 
 function redrawView(name)
