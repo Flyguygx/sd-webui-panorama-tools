@@ -64,9 +64,9 @@ def on_ui_tabs():
                 with gr.Row():
                     with gr.Accordion("Preview", open=True, elem_id="panorama_tools_preview", visible=True):
                         with gr.Row(variant="compact"): 
-                            previewPitch = gr.Slider(label="Pitch  ", minimum=-90, maximum=90, value=0, step=1, interactive=True)
-                            previewYaw = gr.Slider(label="Yaw  ", minimum=-180, maximum=180, value=0, step=1, interactive=True)
-                            previewZoom = gr.Slider(label="Zoom  ", minimum=0, maximum=10, value=1, step=0.05, interactive=True)
+                            previewPitch = gr.Slider(elem_id="panorama_tools_preview_pitch", label="Pitch  ", minimum=-90, maximum=90, value=0, step=1, interactive=True)
+                            previewYaw = gr.Slider(elem_id="panorama_tools_preview_yaw", label="Yaw  ", minimum=-180, maximum=180, value=0, step=1, interactive=True)
+                            previewZoom = gr.Slider(elem_id="panorama_tools_preview_zoom", label="Zoom  ", minimum=0, maximum=10, value=1, step=0.05, interactive=True)
                 with gr.Row():
                     with gr.Accordion("Inpainting", open=True, elem_id="panorama_tools_inpaint", visible=True):
                         inpaintEnable = gr.Checkbox(label="Enable")  

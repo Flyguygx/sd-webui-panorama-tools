@@ -66,11 +66,11 @@ function tabMouseMove(e)
             var pitch = shaderState.pitch[1] - dragAmount*e.movementY;
 
             pitch = Math.max(-90,Math.min(90,pitch));
-            yaw = ((yaw+180) % 360)-180;
+            yaw = (((yaw+180)%360)+360)%360 - 180;
 
-            setParameter('yaw', yaw, 'preview_3d')
-            setParameter('pitch', pitch, 'preview_3d')
-
+            setParameter('yaw', yaw.toFixed(2), 'preview_3d')
+            setParameter('pitch', pitch.toFixed(2), 'preview_3d')
+            updatePreviewSliders();
             e.preventDefault();
         }
         else
@@ -95,7 +95,8 @@ function tabMouseWheel(e)
             zoom = zoom/1.1;
         }
 
-        setParameter('zoom', zoom, 'preview_3d')
+        setParameter('zoom', zoom.toFixed(3), 'preview_3d')
+        updatePreviewSliders()
         e.preventDefault();
     }
 }
@@ -372,6 +373,30 @@ function sendShaderViewTo(shaderViewName, tab)
     if(tab === "extras"){ switch_to_extras() } 
 
     return shaderViews[shaderViewName].canvas.toDataURL();
+}
+
+function setGradioSliderValue(parent, elem_id, value)
+{
+    var slider = parent.querySelector("#"+elem_id+" input[type=number]");
+    var number = parent.querySelector("#"+elem_id+" input[type=range]");
+
+    slider.value = value;
+    number.value = value;
+}
+
+function getGradioSliderValue(parent, elem_id, value)
+{
+    var number = parent.querySelector("#"+elem_id+" input[type=range]");
+
+    return number.value;
+}
+
+function updatePreviewSliders()
+{
+    var gApp = gradioApp();
+    setGradioSliderValue(gApp, "panorama_tools_preview_pitch", shaderState.pitch[1])
+    setGradioSliderValue(gApp, "panorama_tools_preview_yaw", shaderState.yaw[1])
+    setGradioSliderValue(gApp, "panorama_tools_preview_zoom", shaderState.zoom[1])
 }
 
 onUiLoaded(initialize);
