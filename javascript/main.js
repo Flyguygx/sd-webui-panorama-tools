@@ -14,7 +14,8 @@ shaderState =
     offsetBottom: ["float", 0.0]
 }
 
-preview3DDrag = false;
+mouseOverPreview3D = false;
+mouseDragPreview3D = false;
 
 shaderViews = {};
 
@@ -22,16 +23,26 @@ textures = {};
 
 defaultColor = [128,128,128,255]
 
+tab = null;
+
 async function initialize()
 {
     
     shaderViews["preview_2d"] = await setupShaderView('#panotools_equirectangular_canvas','default.vert','equirectangular_preview.frag');
     shaderViews["preview_3d"] = await setupShaderView('#panotools_preview_canvas','default.vert','panorama_preview.frag');
-    shaderViews["preview_3d"].canvas.onmousedown = function(e){if(e.buttons&1 === 1){preview3DDrag = true;}}
-    shaderViews["preview_3d"].canvas.onmouseup = function(e){if(e.buttons&1 === 1){preview3DDrag = false;}}
-    shaderViews["preview_3d"].canvas.onmousemove = function(e){preview3DMouseMove(e)};
-    shaderViews["preview_3d"].canvas.onwheel = function(e){preview3DMouseWheel(e)};
-    
+
+    //Preview canvas events
+    var preview3DCanvas = shaderViews["preview_3d"].canvas;
+    preview3DCanvas.onmousedown = function(e){if(e.buttons&1 === 1){mouseDragPreview3D = true;}}
+    preview3DCanvas.onmouseover = function(e){mouseOverPreview3D = true;}
+    preview3DCanvas.onmouseout = function(e){mouseOverPreview3D = false;}
+
+    //Tab events
+    tab = gradioApp().querySelector("#tab_panorama-tools");
+    tab.onmouseup = function(e){if(e.buttons&1 === 1){mouseDragPreview3D = false;} e.preventDefault();}
+    tab.onmousemove = function(e){tabMouseMove(e)};    
+    tab.onwheel = function(e){tabMouseWheel(e)};
+
     var previewTexture = createPlaceholderTexture(shaderViews["preview_3d"], "equirectangular", defaultColor);
     createPlaceholderTexture(shaderViews["preview_2d"], "equirectangular", defaultColor);
     createPlaceholderTexture(shaderViews["preview_2d"], "inpainting", defaultColor);
@@ -41,13 +52,13 @@ async function initialize()
     redrawView("");
 }
 
-function preview3DMouseMove(e)
+function tabMouseMove(e)
 {
-    if(preview3DDrag)
+    if(mouseDragPreview3D)
     {
         if(e.buttons&1 === 1)
         {
-            var canvasWidth = shaderViews["preview_3d"].canvas.width;
+            var canvasWidth = shaderViews["preview_3d"].canvas.clientWidth;
             var zoom = shaderState.zoom[1];
             var dragAmount = (180.0/Math.PI)*Math.atan(1.0/zoom)/(canvasWidth/2);
             
@@ -59,29 +70,34 @@ function preview3DMouseMove(e)
 
             setParameter('yaw', yaw, 'preview_3d')
             setParameter('pitch', pitch, 'preview_3d')
+
+            e.preventDefault();
         }
         else
         {
-            preview3DDrag = false;
+            mouseDragPreview3D = false;
         }
     }
 }
 
-function preview3DMouseWheel(e)
+function tabMouseWheel(e)
 {
-    var zoom = shaderState.zoom[1];
+    if(mouseDragPreview3D || mouseOverPreview3D)
+    {
+        var zoom = shaderState.zoom[1];
 
-    if(e.deltaY < 0)
-    {
-        zoom = zoom*1.1;
+        if(e.deltaY < 0)
+        {
+            zoom = zoom*1.1;
+        }
+        else
+        {
+            zoom = zoom/1.1;
+        }
+
+        setParameter('zoom', zoom, 'preview_3d')
+        e.preventDefault();
     }
-    else
-    {
-        zoom = zoom/1.1;
-    }
-    
-    setParameter('zoom', zoom, 'preview_3d')
-    e.preventDefault();
 }
 
 function redrawView(name)
