@@ -399,4 +399,17 @@ function updatePreviewSliders()
     setGradioSliderValue(gApp, "panorama_tools_preview_zoom", shaderState.zoom[1])
 }
 
+function copyPreviewSettingsToInpaint()
+{
+    var gApp = gradioApp();
+
+    setGradioSliderValue(gApp, "panorama_tools_inpaint_pitch", shaderState.pitch[1])
+    setGradioSliderValue(gApp, "panorama_tools_inpaint_yaw", shaderState.yaw[1])
+    setGradioSliderValue(gApp, "panorama_tools_inpaint_zoom", shaderState.zoom[1])
+
+    setParameter('maskPitch', shaderState.pitch[1])
+    setParameter('maskYaw', shaderState.yaw[1])
+    setParameter('maskZoom', shaderState.zoom[1])
+}
+
 onUiLoaded(initialize);

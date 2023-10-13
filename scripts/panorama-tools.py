@@ -82,9 +82,9 @@ def on_ui_tabs():
                             copyInpaintFromExtras = gr.Button(value="From Extras")
                             previousInpaintImage = ToolButton('↩️', tooltip=f"Revert to previous inpainting image")                           
                         with gr.Row(variant="compact"):    
-                            inpaintPitch = gr.Slider(label="Pitch   ", minimum=-90, maximum=90, value=0, step=1, interactive=True)
-                            inpaintYaw = gr.Slider(label="Yaw   ", minimum=-180, maximum=180, value=0, step=1, interactive=True)
-                            inpaintZoom = gr.Slider(label="Zoom   ", minimum=0, maximum=10, value=1, step=0.05, interactive=True)
+                            inpaintPitch = gr.Slider(elem_id="panorama_tools_inpaint_pitch", label="Pitch   ", minimum=-90, maximum=90, value=0, step=1, interactive=True)
+                            inpaintYaw = gr.Slider(elem_id="panorama_tools_inpaint_yaw", label="Yaw   ", minimum=-180, maximum=180, value=0, step=1, interactive=True)
+                            inpaintZoom = gr.Slider(elem_id="panorama_tools_inpaint_zoom", label="Zoom   ", minimum=0, maximum=10, value=1, step=0.05, interactive=True)
                             copyPreviewSettings = ToolButton('👁️', tooltip=f"Copy pitch/yaw/zoom from preview.")
                         with gr.Row(variant="compact"):    
                             inpaintMaskBlur = gr.Slider(label="Mask Blur", minimum=0, maximum=10, value=1, step=0.05, interactive=True)
@@ -121,7 +121,8 @@ def on_ui_tabs():
                     send2DImgToExtras = gr.Button(value="Send To Extras")
                     save2DImg = ToolButton('💾', tooltip=f"Save panorama image.")
     
-        copyPreviewSettings.click(copy_preview_settings, inputs=[previewPitch,previewYaw,previewZoom], outputs=[inpaintPitch,inpaintYaw,inpaintZoom])
+        copyPreviewSettings.click(fn=None,inputs=[],outputs=[],show_progress=False,
+                                  _js="() => {copyPreviewSettingsToInpaint()}")
         
         copyPanoramaInputRes.click(fn=None,inputs=[],outputs=[previewWidth, previewHeight, panoramaWidth, panoramaHeight],show_progress=False,
                                    _js="currentPanoramaInputResolution")
