@@ -21,6 +21,15 @@ maxUndoSteps = 5
 angleResolution = 2
 fovResolution = 2
 zoomSensitivity = 0.05; //Degrees FOV per scroll unit
+predefinedViews =
+{
+    front: {yaw:   0, pitch:  0},
+    back:  {yaw: 180, pitch:  0},
+    left:  {yaw: -90, pitch:  0},
+    right: {yaw:  90, pitch:  0},
+    up:    {yaw:   0, pitch: 90},
+    down:  {yaw:   0, pitch:-90},
+}
 
 extensionBaseUrl = ""
 panoramaInputUndoBuffer = [];
@@ -503,4 +512,19 @@ function downloadShaderViewImage(shaderViewName, filename = 'untitled.png') {
     a.href = data;
     a.download = filename;
     a.click();
+}
+
+//Set the 3D preview to show named pre-defined view.
+function setPredefinedView(viewName)
+{
+    var gApp = gradioApp();
+    var preDefView = predefinedViews[viewName];
+    if(preDefView)
+    {
+        setParameter('pitch', preDefView.pitch)
+        setParameter('yaw', preDefView.yaw)
+
+        setGradioSliderValue(gApp, "panorama_tools_preview_pitch", preDefView.pitch)
+        setGradioSliderValue(gApp, "panorama_tools_preview_yaw", preDefView.yaw)
+    }
 }

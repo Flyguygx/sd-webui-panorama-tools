@@ -57,6 +57,13 @@ def on_ui_tabs():
                             previewPitch = gr.Slider(elem_id="panorama_tools_preview_pitch", label="Pitch    ", minimum=-90, maximum=90, value=0, step=5, interactive=True)
                             previewYaw = gr.Slider(elem_id="panorama_tools_preview_yaw", label="Yaw    ", minimum=-180, maximum=180, value=0, step=5, interactive=True)
                             previewFov = gr.Slider(elem_id="panorama_tools_preview_fov", label="Field of View ", minimum=0, maximum=180, value=90, step=5, interactive=True)
+                        with gr.Row(variant="compact"): 
+                            previewFront = gr.Button(value="Front", min_width=100)
+                            previewBack = gr.Button(value="Back", min_width=100)
+                            previewLeft = gr.Button(value="Left", min_width=100)
+                            previewRight = gr.Button(value="Right", min_width=100)
+                            previewUp = gr.Button(value="Up", min_width=100)
+                            previewDown = gr.Button(value="Down", min_width=100)
 
                 with gr.Row():
                     with gr.Accordion("Inpainting", open=True, elem_id="panorama_tools_inpaint", visible=True):
@@ -104,7 +111,7 @@ def on_ui_tabs():
                     send3DImgToImg2Img = gr.Button(value="Send To Img2Img")
                     send3DImgToInpaint = gr.Button(value="Send To Inpaint")
                     send3DImgToExtras = gr.Button(value="Send To Extras")
-                    
+
                 with gr.Row():
                     equirectangular_canvas = gr.HTML('<canvas id="panotools_equirectangular_canvas" width="2048" height="1024" style="width: 512px; height: 256px;margin: 0.25rem; border-radius: 0.25rem; border: 0.5px solid"></canvas>')
                 with gr.Row(variant="compact"):
@@ -115,6 +122,13 @@ def on_ui_tabs():
 
         #UI event handling
         #Button click events
+        previewFront.click(fn=None,show_progress=False, _js="() => {setPredefinedView('front')}")
+        previewBack.click(fn=None,show_progress=False, _js="() => {setPredefinedView('back')}")
+        previewLeft.click(fn=None,show_progress=False, _js="() => {setPredefinedView('left')}")
+        previewRight.click(fn=None,show_progress=False, _js="() => {setPredefinedView('right')}")
+        previewUp.click(fn=None,show_progress=False, _js="() => {setPredefinedView('up')}")
+        previewDown.click(fn=None,show_progress=False, _js="() => {setPredefinedView('down')}")
+
         copyPreviewSettings.click(fn=None,inputs=[],outputs=[],show_progress=False,
                                   _js="() => {copyPreviewSettingsToInpaint()}")
         
