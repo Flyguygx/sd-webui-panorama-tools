@@ -14,16 +14,17 @@ shaderState =
     offsetBottom: ["float", 0.0]
 }
 
+defaultColor = [128,128,128,255]
+
+maxUndoSteps = 5
+panoramaInputUndoBuffer = [];
+inpaintInputUndoBuffer = [];
+
 mouseOverPreview3D = false;
 mouseDragPreview3D = false;
 
 shaderViews = {};
-
 textures = {};
-
-defaultColor = [128,128,128,255]
-
-tab = null;
 
 async function initialize()
 {
@@ -38,7 +39,7 @@ async function initialize()
     preview3DCanvas.onmouseout = function(e){mouseOverPreview3D = false;}
 
     //Tab events
-    tab = gradioApp().querySelector("#tab_panorama-tools");
+    var tab = gradioApp().querySelector("#tab_panorama-tools");
     tab.onmouseup = function(e){if(e.buttons&1 === 1){mouseDragPreview3D = false;} e.preventDefault();}
     tab.onmousemove = function(e){tabMouseMove(e)};    
     tab.onwheel = function(e){tabMouseWheel(e)};
@@ -410,6 +411,59 @@ function copyPreviewSettingsToInpaint()
     setParameter('maskPitch', shaderState.pitch[1])
     setParameter('maskYaw', shaderState.yaw[1])
     setParameter('maskZoom', shaderState.zoom[1])
+}
+
+function loadPanoramaImage(url)
+{
+    loadTexture('preview_3d', 'equirectangular', url); 
+    loadTexture('preview_2d', 'equirectangular', url);
+
+    if(panoramaInputUndoBuffer.length >= maxUndoSteps)
+    {
+        panoramaInputUndoBuffer.shift();
+    }
+
+    panoramaInputUndoBuffer.push(url);
+}
+
+function revertPanoramaImage()
+{
+    var curImage = panoramaInputUndoBuffer.pop();
+    if(panoramaInputUndoBuffer.length >= 1)
+    {
+        return panoramaInputUndoBuffer.pop();
+    }
+    else
+    {
+        panoramaInputUndoBuffer.push(curImage);
+        return curImage;
+    }
+}
+
+function loadInpaintImage(url)
+{
+    loadTexture('preview_2d', 'inpainting', url)
+
+    if(inpaintInputUndoBuffer.length >= maxUndoSteps)
+    {
+        inpaintInputUndoBuffer.shift();
+    }
+
+    inpaintInputUndoBuffer.push(url);
+}
+
+function revertInpaintImage()
+{
+    var curImage = inpaintInputUndoBuffer.pop();
+    if(inpaintInputUndoBuffer.length >= 1)
+    {
+        return inpaintInputUndoBuffer.pop();
+    }
+    else
+    {
+        inpaintInputUndoBuffer.push(curImage);
+        return curImage;
+    }
 }
 
 onUiLoaded(initialize);

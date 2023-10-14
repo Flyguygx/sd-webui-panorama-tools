@@ -138,6 +138,9 @@ def on_ui_tabs():
         
         copyPanoramaFromOutput.click(fn=None,inputs=[],outputs=[panorama_input_image],show_progress=False,
                                      _js="() => {return getShaderViewImage('preview_2d')}")
+        
+        previousPanoramaImage.click(fn=None,inputs=[],outputs=[panorama_input_image],show_progress=False,
+                                     _js="() => {return revertPanoramaImage()}")
 
         copyInpaintFromTxt2Img.click(fn=None,inputs=[],outputs=[panorama_inpaint_input_image],show_progress=False,
                                      _js="() => {return getSelectedImageOnTab('txt2img')}")
@@ -147,6 +150,9 @@ def on_ui_tabs():
         
         copyInpaintFromExtras.click(fn=None,inputs=[],outputs=[panorama_inpaint_input_image],show_progress=False,
                                      _js="() => {return getSelectedImageOnTab('extras')}")
+        
+        previousInpaintImage.click(fn=None,inputs=[],outputs=[panorama_inpaint_input_image],show_progress=False,
+                                     _js="() => {return revertInpaintImage()}")
 
         send2DImgToImg2Img.click(fn=None,inputs=[],outputs=[sendto_inputs["img2img"]["component"]],show_progress=False,
                                  _js="() => {return sendShaderViewTo('preview_2d','img2img')}")
@@ -187,10 +193,10 @@ def on_ui_tabs():
         panoramaHeight.change(None, [panoramaWidth, panoramaHeight], None, _js="(w,h) => {updateResolution('preview_2d', w, h, true)}")
 
         panorama_input_image.change(None, [panorama_input_image], None, 
-            _js="(url) => {loadTexture('preview_3d', 'equirectangular', url); loadTexture('preview_2d', 'equirectangular', url)}")
+            _js="(url) => {loadPanoramaImage(url)}")
         
         panorama_inpaint_input_image.change(None, [panorama_inpaint_input_image], None, 
-            _js="(url) => {loadTexture('preview_2d', 'inpainting', url)}")
+            _js="(url) => {loadInpaintImage(url)}")
 
     return [(panorama_tools_ui, "Panorama Tools", "panorama-tools")]
 
