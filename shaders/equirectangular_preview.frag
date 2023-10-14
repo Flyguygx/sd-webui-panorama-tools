@@ -72,7 +72,7 @@ void main(void)
 
     vec3 maskDir = dir;
     maskDir = rotateY(maskDir, radians(-maskYaw));
-    maskDir = rotateX(maskDir, radians(-maskPitch));
+    maskDir = rotateX(maskDir, radians(maskPitch));
     maskDir = normalize(maskDir/vec3(1,1,maskZoom));
 
     vec2 maskUV = vec2(atan(maskDir.x,maskDir.z), atan(maskDir.y,length(maskDir.xz)));

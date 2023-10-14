@@ -71,7 +71,7 @@ function tabMouseMove(e)
             var mouseSensitivity = (180.0/Math.PI)*Math.atan(1.0/zoom)/(canvasWidth/2);
             
             var yaw = shaderState.yaw.value - mouseSensitivity*e.movementX;
-            var pitch = shaderState.pitch.value - mouseSensitivity*e.movementY;
+            var pitch = shaderState.pitch.value - mouseSensitivity*-e.movementY;
 
             //Clamp pitch between +/-90deg, wrap yaw between +/-180deg
             pitch = Math.max(-90,Math.min(90,pitch));

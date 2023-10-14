@@ -37,7 +37,7 @@ void main(void)
     vec2 uv = gl_FragCoord.xy / resolution;
 
     vec3 dir = normalize(vec3(2.0*uv-1.0, zoom));
-    dir = rotateX(dir, radians(pitch));
+    dir = rotateX(dir, radians(-pitch));
     dir = rotateY(dir, radians(yaw));
 
     vec2 texUV = vec2(atan(dir.x,dir.z), atan(dir.y,length(dir.xz)));
