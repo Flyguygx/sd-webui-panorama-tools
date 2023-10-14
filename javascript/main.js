@@ -1,22 +1,26 @@
+//Shader state variables
 shaderState =
 {
-    yaw: ["float", 0.0],
-    pitch: ["float", 0.0],
-    zoom: ["float", 1.0],
-    maskYaw: ["float", 0.0],
-    maskPitch: ["float", 0.0],
-    maskZoom : ["float", 1.0],
-    maskBlend: ["float", 0.0],
-    maskEnable: ["float", 0.0],
-    reorientYaw: ["float", 0.0],
-    reorientPitch: ["float", 0.0],
-    offsetTop: ["float", 0.0],
-    offsetBottom: ["float", 0.0]
+    yaw:           {type: "float", value: 0.0},
+    pitch:         {type: "float", value: 0.0},
+    zoom:          {type: "float", value: 1.0},
+    maskYaw:       {type: "float", value: 0.0},
+    maskPitch:     {type: "float", value: 0.0},
+    maskZoom :     {type: "float", value: 1.0},
+    maskBlend:     {type: "float", value: 0.0},
+    maskEnable:    {type: "float", value: 0.0},
+    reorientYaw:   {type: "float", value: 0.0},
+    reorientPitch: {type: "float", value: 0.0},
+    offsetTop:     {type: "float", value: 0.0},
+    offsetBottom:  {type: "float", value: 0.0}
 }
 
 defaultColor = [128,128,128,255]
-
 maxUndoSteps = 5
+angleResolution = 2
+zoomResolution = 3
+
+extensionBaseUrl = ""
 panoramaInputUndoBuffer = [];
 inpaintInputUndoBuffer = [];
 
@@ -26,8 +30,9 @@ mouseDragPreview3D = false;
 shaderViews = {};
 textures = {};
 
-async function initialize()
+async function initialize(baseUrl)
 {
+    extensionBaseUrl = baseUrl;
     
     shaderViews["preview_2d"] = await setupShaderView('#panotools_equirectangular_canvas','default.vert','equirectangular_preview.frag');
     shaderViews["preview_3d"] = await setupShaderView('#panotools_preview_canvas','default.vert','panorama_preview.frag');
@@ -53,24 +58,27 @@ async function initialize()
     redrawView("");
 }
 
+//Handles mouse rotation for 3d preview if drag started in 3d preview.
 function tabMouseMove(e)
 {
     if(mouseDragPreview3D)
     {
-        if(e.buttons&1 === 1)
+        if(e.buttons & 1 === 1) //Left/Primary mouse button clicked
         {
+            //Adjust mouse sensitivity with zoom
             var canvasWidth = shaderViews["preview_3d"].canvas.clientWidth;
-            var zoom = shaderState.zoom[1];
-            var dragAmount = (180.0/Math.PI)*Math.atan(1.0/zoom)/(canvasWidth/2);
+            var zoom = shaderState.zoom.value;
+            var mouseSensitivity = (180.0/Math.PI)*Math.atan(1.0/zoom)/(canvasWidth/2);
             
-            var yaw = shaderState.yaw[1] - dragAmount*e.movementX;
-            var pitch = shaderState.pitch[1] - dragAmount*e.movementY;
+            var yaw = shaderState.yaw.value - mouseSensitivity*e.movementX;
+            var pitch = shaderState.pitch.value - mouseSensitivity*e.movementY;
 
+            //Clamp pitch between +/-90deg, wrap yaw between +/-180deg
             pitch = Math.max(-90,Math.min(90,pitch));
             yaw = (((yaw+180)%360)+360)%360 - 180;
-
-            setParameter('yaw', yaw.toFixed(2), 'preview_3d')
-            setParameter('pitch', pitch.toFixed(2), 'preview_3d')
+            
+            setParameter('yaw', yaw.toFixed(angleResolution), 'preview_3d')
+            setParameter('pitch', pitch.toFixed(angleResolution), 'preview_3d')
             updatePreviewSliders();
             e.preventDefault();
         }
@@ -81,11 +89,12 @@ function tabMouseMove(e)
     }
 }
 
+//Handles mouse zooming in 3d preview if the mouse is over it or while rotating the preview.
 function tabMouseWheel(e)
 {
     if(mouseDragPreview3D || mouseOverPreview3D)
     {
-        var zoom = shaderState.zoom[1];
+        var zoom = shaderState.zoom.value;
 
         if(e.deltaY < 0)
         {
@@ -96,12 +105,13 @@ function tabMouseWheel(e)
             zoom = zoom/1.1;
         }
 
-        setParameter('zoom', zoom.toFixed(3), 'preview_3d')
+        setParameter('zoom', zoom.toFixed(zoomResolution), 'preview_3d')
         updatePreviewSliders()
         e.preventDefault();
     }
 }
 
+//Redraw a named shader view or all views if no name is given.
 function redrawView(name)
 {
     if(name === "") //Update all if no view specified
@@ -119,6 +129,7 @@ function redrawView(name)
     }
 }
 
+//Creates a 1x1 texture with the specified color.
 function createPlaceholderTexture(shaderView, name, color = [0,0,0,255])
 {
     var gl = shaderView.glContext;
@@ -140,6 +151,7 @@ function createPlaceholderTexture(shaderView, name, color = [0,0,0,255])
     };
 }
 
+//Load a texture from a URL
 function loadTexture(shaderViewName, name, url)
 {
     var shaderView = shaderViews[shaderViewName];
@@ -167,33 +179,25 @@ function loadTexture(shaderViewName, name, url)
     }
 }
 
-function updateCanvasTexture(dstShaderView, textureName, srcShaderViewName)
-{
-    var srcShaderViewCanvas = shaderViews[srcShaderViewName].glContext.canvas;
-    var dstShaderView = dstShaderViewName;
-    var gl = dstShaderView.glContext;
-    var texture = dstShaderView.textures[textureName].glTexture;
-
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, srcShaderViewCanvas);
-    gl.generateMipmap(gl.TEXTURE_2D);
-}
-
+//Set a named shader state parameter and re-draw all or a named shader view.
 function setParameter(name, value, shaderViewName = "")
 {
-    shaderState[name][1] = value;
+    shaderState[name].value = value;
 
     redrawView(shaderViewName);
 }
 
+//Update a list of shader uniforms for a given shader view
+//list format: name:{type:"float",value:1234}
 function updateUniforms(shaderView, shaderState)
 {
     for (const [name, typeValue] of Object.entries(shaderState)) 
     {
-        var test = setUniform(shaderView, typeValue[0], name, typeValue[1]);
+        var test = setUniform(shaderView, typeValue.type, name, typeValue.value);
     }
 }
 
+//Set the value of a named uniform of a given type on a shader view.
 function setUniform(shaderView, type, name, value)
 {
     var gl = shaderView.glContext;
@@ -223,10 +227,11 @@ function setUniform(shaderView, type, name, value)
     return true;
 }
 
+//Load a named glsl shader into the given GL context
 async function loadShader(gl, name, type)
 {
-    let shaderUrl = "file=extensions/sd-webui-panorama-tools/shaders/"
-    let shaderSource = await (await fetch(shaderUrl+name)).text();
+    let shaderUrl = extensionBaseUrl+"/shaders/"+name
+    let shaderSource = await (await fetch(shaderUrl)).text();
     var shader = gl.createShader(type);
     gl.shaderSource(shader, shaderSource);
     gl.compileShader(shader);
@@ -240,11 +245,13 @@ async function loadShader(gl, name, type)
     }
 }
 
+//Sets up a basic full-screen triangle in webgl2 with vert/frag shaders.
 async function setupShaderView(canvasId, vertShaderName, fragShaderName)
 {
     var canvas = gradioApp().querySelector(canvasId);
     gl = canvas.getContext('webgl2', {preserveDrawingBuffer:true});
 
+    //Setup triangle
     var vertices = [
         -1, -1, 0,
          3, -1, 0,
@@ -262,6 +269,7 @@ async function setupShaderView(canvasId, vertShaderName, fragShaderName)
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
+    //Load shaders
     var vertShader = await loadShader(gl, vertShaderName, gl.VERTEX_SHADER);
     if(!vertShader.compiled)
     {
@@ -289,6 +297,7 @@ async function setupShaderView(canvasId, vertShaderName, fragShaderName)
     }
 }
 
+//Draws the given shader view and updates any assigned render-to textures.
 function drawShaderView(shaderView)
 {
     var gl = shaderView.glContext;
@@ -304,6 +313,7 @@ function drawShaderView(shaderView)
 
     gl.viewport(0,0,shaderView.canvas.width, shaderView.canvas.height);
 
+    //
     var unit = 0;
     for (const [name, texture] of Object.entries(shaderView.textures)) 
     {    
@@ -316,6 +326,7 @@ function drawShaderView(shaderView)
 
     gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT,0);
 
+    //Update assgned render-to textures.
     for(const renderToTexture of shaderView.renderToTextures)
     {
         var dstGLContext = renderToTexture.glContext;
@@ -327,6 +338,7 @@ function drawShaderView(shaderView)
     }
 }
 
+//Update the resolution of a named shader view, optionally redraw all views (for dependent render-to textures)
 function updateResolution(name,width,height,redrawAll=false)
 {
     shaderViews[name].canvas.width = width;
@@ -341,11 +353,14 @@ function updateResolution(name,width,height,redrawAll=false)
     }
 }
 
-function currentPanoramaInputResolution() {
+//Returns the preview resolution calculated from the input resolution & input resolution
+function viewResolutionFromInput() 
+{
     var img = gradioApp().querySelector('#panorama_input_image img');
-    return img ? [img.naturalWidth/4, img.naturalHeight/2, img.naturalWidth, img.naturalHeight] : [0, 0, 0, 0];
+    return img ? [img.naturalWidth/4, img.naturalHeight/2, img.naturalWidth, img.naturalHeight] : [512, 512, 1024, 2048];
 }
 
+//Gets the selected image (or first if none selected) in the gallery of the specified webui tab.
 function getSelectedImageOnTab(tab)
 {
     var queryStr = (tab === "txt2img") ? "#txt2img_gallery img" :
@@ -362,11 +377,14 @@ function getSelectedImageOnTab(tab)
     return ""
 }
 
+//Return a DataURL image of the named shader view.
 function getShaderViewImage(shaderViewName)
 {
     return shaderViews[shaderViewName].canvas.toDataURL();
 }
 
+//Returns a DataURL image of the named shader view and switches to the specified tab.
+//Must be called from python with the specified tab's image component as the output.
 function sendShaderViewTo(shaderViewName, tab)
 {
     if(tab === "img2img"){ switch_to_img2img() }
@@ -376,6 +394,8 @@ function sendShaderViewTo(shaderViewName, tab)
     return shaderViews[shaderViewName].canvas.toDataURL();
 }
 
+//Set the value of a Gradio slider.
+//Caution - Doesn't relay changes back to Gradio so Python code using the slider value will go out of sync.
 function setGradioSliderValue(parent, elem_id, value)
 {
     var slider = parent.querySelector("#"+elem_id+" input[type=number]");
@@ -385,34 +405,38 @@ function setGradioSliderValue(parent, elem_id, value)
     number.value = value;
 }
 
-function getGradioSliderValue(parent, elem_id, value)
+//Get the value of a Gradio slider.
+function getGradioSliderValue(parent, elem_id)
 {
     var number = parent.querySelector("#"+elem_id+" input[type=range]");
 
     return number.value;
 }
 
+//Update the preview sliders to match the shader state parameters.
 function updatePreviewSliders()
 {
     var gApp = gradioApp();
-    setGradioSliderValue(gApp, "panorama_tools_preview_pitch", shaderState.pitch[1])
-    setGradioSliderValue(gApp, "panorama_tools_preview_yaw", shaderState.yaw[1])
-    setGradioSliderValue(gApp, "panorama_tools_preview_zoom", shaderState.zoom[1])
+    setGradioSliderValue(gApp, "panorama_tools_preview_pitch", shaderState.pitch.value)
+    setGradioSliderValue(gApp, "panorama_tools_preview_yaw", shaderState.yaw.value)
+    setGradioSliderValue(gApp, "panorama_tools_preview_zoom", shaderState.zoom.value)
 }
 
+//Copy the preview slider values to the inpainting sliders to align inpainting with current view.
 function copyPreviewSettingsToInpaint()
 {
     var gApp = gradioApp();
 
-    setGradioSliderValue(gApp, "panorama_tools_inpaint_pitch", shaderState.pitch[1])
-    setGradioSliderValue(gApp, "panorama_tools_inpaint_yaw", shaderState.yaw[1])
-    setGradioSliderValue(gApp, "panorama_tools_inpaint_zoom", shaderState.zoom[1])
+    setGradioSliderValue(gApp, "panorama_tools_inpaint_pitch", shaderState.pitch.value)
+    setGradioSliderValue(gApp, "panorama_tools_inpaint_yaw", shaderState.yaw.value)
+    setGradioSliderValue(gApp, "panorama_tools_inpaint_zoom", shaderState.zoom.value)
 
-    setParameter('maskPitch', shaderState.pitch[1])
-    setParameter('maskYaw', shaderState.yaw[1])
-    setParameter('maskZoom', shaderState.zoom[1])
+    setParameter('maskPitch', shaderState.pitch.value)
+    setParameter('maskYaw', shaderState.yaw.value)
+    setParameter('maskZoom', shaderState.zoom.value)
 }
 
+//Laod panorama image to both 2d/3d previews, add to undo buffer.
 function loadPanoramaImage(url)
 {
     loadTexture('preview_3d', 'equirectangular', url); 
@@ -426,6 +450,7 @@ function loadPanoramaImage(url)
     panoramaInputUndoBuffer.push(url);
 }
 
+//Revert to previous panorama image.
 function revertPanoramaImage()
 {
     var curImage = panoramaInputUndoBuffer.pop();
@@ -440,6 +465,7 @@ function revertPanoramaImage()
     }
 }
 
+//Laod inpainting image to both 2d/3d previews, add to undo buffer.
 function loadInpaintImage(url)
 {
     loadTexture('preview_2d', 'inpainting', url)
@@ -452,6 +478,7 @@ function loadInpaintImage(url)
     inpaintInputUndoBuffer.push(url);
 }
 
+//Revert to previous inpainting image.
 function revertInpaintImage()
 {
     var curImage = inpaintInputUndoBuffer.pop();
@@ -466,7 +493,9 @@ function revertInpaintImage()
     }
 }
 
-function downloadCanvasImage(canvas, filename = 'untitles.png') {
+//Download an image og the specified shader view.
+function downloadShaderViewImage(shaderViewName, filename = 'untitled.png') {
+    var canvas = shaderViews[shaderViewName].canvas;
     var data = canvas.toDataURL("image/png", 1.0);
     var a = document.createElement('a');
     a.href = data;
@@ -474,9 +503,4 @@ function downloadCanvasImage(canvas, filename = 'untitles.png') {
     a.click();
 }
 
-function download2DImage()
-{
-    downloadCanvasImage(shaderViews["preview_2d"].canvas, 'panorama.png');
-}
-
-onUiLoaded(initialize);
+//onUiLoaded(initialize);

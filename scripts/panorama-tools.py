@@ -124,7 +124,7 @@ def on_ui_tabs():
                                   _js="() => {copyPreviewSettingsToInpaint()}")
         
         copyPanoramaInputRes.click(fn=None,inputs=[],outputs=[previewWidth, previewHeight, panoramaWidth, panoramaHeight],show_progress=False,
-                                   _js="currentPanoramaInputResolution")
+                                   _js="() => {return viewResolutionFromInput()}")
         
         copyPanoramaFromTxt2Img.click(fn=None,inputs=[],outputs=[panorama_input_image],show_progress=False,
                                       _js="() => {return getSelectedImageOnTab('txt2img')}")
@@ -163,7 +163,7 @@ def on_ui_tabs():
                                 _js="() => {return sendShaderViewTo('preview_2d','extras')}")
         
         save2DImage.click(fn=None,inputs=[],outputs=[],show_progress=False,
-                                _js="() => {return download2DImage()}")
+                                _js="() => {return downloadShaderViewImage('preview_2d', 'panorama.png')}")
 
         send3DImgToImg2Img.click(fn=None,inputs=[],outputs=[sendto_inputs["img2img"]["component"]],show_progress=False,
                                  _js="() => {return sendShaderViewTo('preview_3d','img2img')}")
@@ -199,6 +199,8 @@ def on_ui_tabs():
         
         panorama_inpaint_input_image.change(None, [panorama_inpaint_input_image], None, 
             _js="(url) => {loadInpaintImage(url)}")
+        
+        panorama_tools_ui.load(None, inputs=[], outputs=[], _js="(url) => {initialize('"+baseUrl+"')}")
 
     return [(panorama_tools_ui, "Panorama Tools", "panorama-tools")]
 
