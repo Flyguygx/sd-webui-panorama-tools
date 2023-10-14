@@ -32,6 +32,7 @@ def get_extension_base_url():
     return "file="+url
 
 def on_ui_tabs():
+    #UI layout
     with gr.Blocks(analytics_enabled=False) as panorama_tools_ui:
         with gr.Row():
             with gr.Column():
@@ -49,12 +50,14 @@ def on_ui_tabs():
                             copyPanoramaFromExtras = gr.Button(value="From Extras")
                             copyPanoramaFromOutput = gr.Button(value="From Output")
                             previousPanoramaImage = ToolButton('↩️', tooltip=f"Revert to previous panorama image")
+
                 with gr.Row():
                     with gr.Accordion("Preview", open=True, elem_id="panorama_tools_preview", visible=True):
                         with gr.Row(variant="compact"): 
                             previewPitch = gr.Slider(elem_id="panorama_tools_preview_pitch", label="Pitch    ", minimum=-90, maximum=90, value=0, step=5, interactive=True)
                             previewYaw = gr.Slider(elem_id="panorama_tools_preview_yaw", label="Yaw    ", minimum=-180, maximum=180, value=0, step=5, interactive=True)
                             previewFov = gr.Slider(elem_id="panorama_tools_preview_fov", label="Field of View ", minimum=0, maximum=180, value=90, step=5, interactive=True)
+
                 with gr.Row():
                     with gr.Accordion("Inpainting", open=True, elem_id="panorama_tools_inpaint", visible=True):
                         inpaintEnable = gr.Checkbox(label="Enable")  
@@ -85,6 +88,7 @@ def on_ui_tabs():
                         with gr.Row():
                             offsetTop = gr.Slider(label="Upper Pole Offset", minimum=0, maximum=1, value=0, step=0.01, interactive=True)
                             offsetBottom = gr.Slider(label="Lower Pole Offset", minimum=0, maximum=1, value=0, step=0.01, interactive=True)
+
                 with gr.Row():
                     with gr.Accordion("Resolution", open=True, elem_id="panorama_tools_resolution", visible=True):
                         previewWidth = gr.Slider(label="Preview Width ", minimum=64, maximum=2048, value=512, step=64, interactive=True)
@@ -100,6 +104,7 @@ def on_ui_tabs():
                     send3DImgToImg2Img = gr.Button(value="Send To Img2Img")
                     send3DImgToInpaint = gr.Button(value="Send To Inpaint")
                     send3DImgToExtras = gr.Button(value="Send To Extras")
+                    
                 with gr.Row():
                     equirectangular_canvas = gr.HTML('<canvas id="panotools_equirectangular_canvas" width="2048" height="1024" style="width: 512px; height: 256px;margin: 0.25rem; border-radius: 0.25rem; border: 0.5px solid"></canvas>')
                 with gr.Row(variant="compact"):
@@ -107,7 +112,9 @@ def on_ui_tabs():
                     send2DImgToInpaint = gr.Button(value="Send To Inpaint")
                     send2DImgToExtras = gr.Button(value="Send To Extras")
                     save2DImage = ToolButton('💾', tooltip=f"Save panorama image.")
-    
+
+        #UI event handling
+        #Button click events
         copyPreviewSettings.click(fn=None,inputs=[],outputs=[],show_progress=False,
                                   _js="() => {copyPreviewSettingsToInpaint()}")
         
@@ -158,10 +165,11 @@ def on_ui_tabs():
         
         send3DImgToInpaint.click(fn=None,inputs=[],outputs=[sendto_inputs["inpaint"]["component"]],show_progress=False,
                                  _js="() => {return sendShaderViewTo('preview_3d','inpaint')}")
-        
+
         send3DImgToExtras.click(fn=None,inputs=[],outputs=[sendto_inputs["extras"]["component"]],show_progress=False,
                                 _js="() => {return sendShaderViewTo('preview_3d','extras')}")
         
+        #Slider change events
         previewPitch.change(None, [previewPitch], None, _js="(v) => {setParameter('pitch', v, 'preview_3d')}")
         previewYaw.change(None, [previewYaw], None, _js="(v) => {setParameter('yaw', v, 'preview_3d')}")
         previewFov.change(None, [previewFov], None, _js="(v) => {setParameter('fov', v, 'preview_3d')}")
@@ -182,17 +190,17 @@ def on_ui_tabs():
         panoramaWidth.change(None, [panoramaWidth, panoramaHeight], None, _js="(w,h) => {updateResolution('preview_2d', w, h, true)}")
         panoramaHeight.change(None, [panoramaWidth, panoramaHeight], None, _js="(w,h) => {updateResolution('preview_2d', w, h, true)}")
 
-        panorama_input_image.change(None, [panorama_input_image], None, 
-            _js="(url) => {loadPanoramaImage(url)}")
+        #Image input change events
+        panorama_input_image.change(None, [panorama_input_image], None, _js="(url) => {loadPanoramaImage(url)}")
+        panorama_inpaint_input_image.change(None, [panorama_inpaint_input_image], None,  _js="(url) => {loadInpaintImage(url)}")
         
-        panorama_inpaint_input_image.change(None, [panorama_inpaint_input_image], None, 
-            _js="(url) => {loadInpaintImage(url)}")
-        
+        #Initial loading
         panorama_tools_ui.load(None, inputs=[], outputs=[], _js="(url) => {initialize('"+baseUrl+"')}")
 
     return [(panorama_tools_ui, "Panorama Tools", "panorama-tools")]
 
 def after_component(component, **kwargs):
+    #Find the image input elements for "send to" buttons.
     for name, sendto_input in sendto_inputs.items():
         if kwargs.get("elem_id") == sendto_input["elem_id"]:
             sendto_input["component"] = component

@@ -15,18 +15,19 @@ shaderState =
     offsetBottom:  {type: "float", value:  0.0}
 }
 
+defaultResolution = [512, 512, 1024, 2048] //Preview width/height, Panorama width/height
 defaultColor = [128,128,128,255]
 maxUndoSteps = 5
 angleResolution = 2
 fovResolution = 2
-zoomSensitivity = 0.05;
+zoomSensitivity = 0.05; //Degrees FOV per scroll unit
 
 extensionBaseUrl = ""
 panoramaInputUndoBuffer = [];
 inpaintInputUndoBuffer = [];
 
-mouseOverPreview3D = false;
-mouseDragPreview3D = false;
+mouseOverPreview3D = false; //Mouse is over 3D preview
+mouseDragPreview3D = false; //Click and drag started in 3D preview
 
 shaderViews = {};
 textures = {};
@@ -50,12 +51,15 @@ async function initialize(baseUrl)
     tab.onmousemove = function(e){tabMouseMove(e)};    
     tab.onwheel = function(e){tabMouseWheel(e)};
 
-    var previewTexture = createPlaceholderTexture(shaderViews["preview_3d"], "equirectangular", defaultColor);
+    //Create place holder textures for shader views
     createPlaceholderTexture(shaderViews["preview_2d"], "equirectangular", defaultColor);
     createPlaceholderTexture(shaderViews["preview_2d"], "inpainting", defaultColor);
 
+    //Setup render-to texture for 3D preview
+    var previewTexture = createPlaceholderTexture(shaderViews["preview_3d"], "equirectangular", defaultColor);
     shaderViews["preview_2d"].renderToTextures.push(previewTexture);
 
+    //Redraw all views
     redrawView("");
 }
 
@@ -68,8 +72,7 @@ function tabMouseMove(e)
         {
             //Adjust mouse sensitivity with fov
             var canvasWidth = shaderViews["preview_3d"].canvas.clientWidth;
-            var fov = shaderState.fov.value;
-            var mouseSensitivity = fov/canvasWidth;
+            var mouseSensitivity = shaderState.fov.value/canvasWidth;
             
             var yaw = shaderState.yaw.value - mouseSensitivity*e.movementX;
             var pitch = shaderState.pitch.value - mouseSensitivity*-e.movementY;
@@ -81,6 +84,8 @@ function tabMouseMove(e)
             setParameter('yaw', yaw.toFixed(angleResolution), 'preview_3d')
             setParameter('pitch', pitch.toFixed(angleResolution), 'preview_3d')
             updatePreviewSliders();
+            
+            //Avoid selecting text while rotating view
             e.preventDefault();
         }
         else
@@ -102,6 +107,8 @@ function tabMouseWheel(e)
 
         setParameter('fov', fov.toFixed(fovResolution), 'preview_3d')
         updatePreviewSliders()
+
+        //Avoid scrolling while zooming view
         e.preventDefault();
     }
 }
@@ -166,7 +173,7 @@ function loadTexture(shaderViewName, name, url)
             redrawView("");
         };
     }
-    else //Handle image being cleared
+    else //Default to 1x1 texture with default color is url is blank/null/etc.
     {
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(defaultColor));
@@ -308,7 +315,7 @@ function drawShaderView(shaderView)
 
     gl.viewport(0,0,shaderView.canvas.width, shaderView.canvas.height);
 
-    //
+    //Bind assigned textures
     var unit = 0;
     for (const [name, texture] of Object.entries(shaderView.textures)) 
     {    
@@ -352,7 +359,7 @@ function updateResolution(name,width,height,redrawAll=false)
 function viewResolutionFromInput() 
 {
     var img = gradioApp().querySelector('#panorama_input_image img');
-    return img ? [img.naturalWidth/4, img.naturalHeight/2, img.naturalWidth, img.naturalHeight] : [512, 512, 1024, 2048];
+    return img ? [img.naturalWidth/4, img.naturalHeight/2, img.naturalWidth, img.naturalHeight] : defaultResolution;
 }
 
 //Gets the selected image (or first if none selected) in the gallery of the specified webui tab.
@@ -497,5 +504,3 @@ function downloadShaderViewImage(shaderViewName, filename = 'untitled.png') {
     a.download = filename;
     a.click();
 }
-
-//onUiLoaded(initialize);
