@@ -466,4 +466,17 @@ function revertInpaintImage()
     }
 }
 
+function downloadCanvasImage(canvas, filename = 'untitles.png') {
+    var data = canvas.toDataURL("image/png", 1.0);
+    var a = document.createElement('a');
+    a.href = data;
+    a.download = filename;
+    a.click();
+}
+
+function download2DImage()
+{
+    downloadCanvasImage(shaderViews["preview_2d"].canvas, 'panorama.png');
+}
+
 onUiLoaded(initialize);

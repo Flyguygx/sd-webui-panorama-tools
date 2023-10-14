@@ -88,7 +88,6 @@ def on_ui_tabs():
                             copyPreviewSettings = ToolButton('👁️', tooltip=f"Copy pitch/yaw/zoom from preview.")
                         with gr.Row(variant="compact"):    
                             inpaintMaskBlur = gr.Slider(label="Mask Blur", minimum=0, maximum=10, value=1, step=0.05, interactive=True)
-                            #copyPreviewSettings = ToolButton('👁️', tooltip=f"Copy pitch/yaw/zoom from preview.")#gr.Button(value="Copy Preview Settings")
 
                 with gr.Row():
                     with gr.Accordion("Adjustments", open=True, elem_id="panorama_tools_edit", visible=True):
@@ -119,7 +118,7 @@ def on_ui_tabs():
                     send2DImgToImg2Img = gr.Button(value="Send To Img2Img")
                     send2DImgToInpaint = gr.Button(value="Send To Inpaint")
                     send2DImgToExtras = gr.Button(value="Send To Extras")
-                    save2DImg = ToolButton('💾', tooltip=f"Save panorama image.")
+                    save2DImage = ToolButton('💾', tooltip=f"Save panorama image.")
     
         copyPreviewSettings.click(fn=None,inputs=[],outputs=[],show_progress=False,
                                   _js="() => {copyPreviewSettingsToInpaint()}")
@@ -162,6 +161,9 @@ def on_ui_tabs():
         
         send2DImgToExtras.click(fn=None,inputs=[],outputs=[sendto_inputs["extras"]["component"]],show_progress=False,
                                 _js="() => {return sendShaderViewTo('preview_2d','extras')}")
+        
+        save2DImage.click(fn=None,inputs=[],outputs=[],show_progress=False,
+                                _js="() => {return download2DImage()}")
 
         send3DImgToImg2Img.click(fn=None,inputs=[],outputs=[sendto_inputs["img2img"]["component"]],show_progress=False,
                                  _js="() => {return sendShaderViewTo('preview_3d','img2img')}")
