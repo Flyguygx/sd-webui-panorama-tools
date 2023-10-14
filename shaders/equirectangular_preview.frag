@@ -89,7 +89,6 @@ void main(void)
             clip *= smoothstep(1.0,1.0-maskBlend,abs(maskDir.y)/maskDir.z);
         }
     }
-    
 
     dir = rotateX(dir, radians(reorientPitch));
     dir = rotateY(dir, radians(reorientYaw));
