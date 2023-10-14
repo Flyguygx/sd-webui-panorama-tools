@@ -5,7 +5,7 @@ precision highp float;
 uniform vec2 resolution;
 uniform float pitch;
 uniform float yaw;
-uniform float zoom;
+uniform float fov;
 uniform sampler2D equirectangular;
 
 const float PI = 3.1415926535;
@@ -36,7 +36,8 @@ void main(void)
 {
     vec2 uv = gl_FragCoord.xy / resolution;
 
-    vec3 dir = normalize(vec3(2.0*uv-1.0, zoom));
+    float focalLen = 1.0/tan(0.5*fov*PI/180.0);
+    vec3 dir = normalize(vec3(2.0*uv-1.0, focalLen));
     dir = rotateX(dir, radians(-pitch));
     dir = rotateY(dir, radians(yaw));
 

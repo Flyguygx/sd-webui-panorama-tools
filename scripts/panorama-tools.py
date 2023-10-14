@@ -31,19 +31,6 @@ def get_extension_base_url():
     url = url.replace(os.sep,"/")
     return "file="+url
 
-def copy_preview_settings(preview_pitch,preview_yaw,preview_zoom,inpaint_pitch,inpaint_yaw,inpaint_zoom):
-    return preview_pitch,preview_yaw, preview_zoom
-
-def copy_img2img_to_pan_inpaint(gallery, image):
-    image.value = gallery
-
-def copy_input_resolution(image):
-    if (image.width is not None) and (image.height is not None):
-        preview_width = round(image.width/4)
-        preview_height = round(image.height/2)
-        return preview_width, preview_height, image.width, image.height
-
-
 def on_ui_tabs():
     with gr.Blocks(analytics_enabled=False) as panorama_tools_ui:
         with gr.Row():
@@ -67,7 +54,7 @@ def on_ui_tabs():
                         with gr.Row(variant="compact"): 
                             previewPitch = gr.Slider(elem_id="panorama_tools_preview_pitch", label="Pitch    ", minimum=-90, maximum=90, value=0, step=5, interactive=True)
                             previewYaw = gr.Slider(elem_id="panorama_tools_preview_yaw", label="Yaw    ", minimum=-180, maximum=180, value=0, step=5, interactive=True)
-                            previewZoom = gr.Slider(elem_id="panorama_tools_preview_zoom", label="Zoom    ", minimum=0, maximum=10, value=1, step=0.05, interactive=True)
+                            previewFov = gr.Slider(elem_id="panorama_tools_preview_fov", label="Field of View ", minimum=0, maximum=180, value=90, step=5, interactive=True)
                 with gr.Row():
                     with gr.Accordion("Inpainting", open=True, elem_id="panorama_tools_inpaint", visible=True):
                         inpaintEnable = gr.Checkbox(label="Enable")  
@@ -85,8 +72,8 @@ def on_ui_tabs():
                         with gr.Row(variant="compact"):    
                             inpaintPitch = gr.Slider(elem_id="panorama_tools_inpaint_pitch", label="Pitch     ", minimum=-90, maximum=90, value=0, step=5, interactive=True)
                             inpaintYaw = gr.Slider(elem_id="panorama_tools_inpaint_yaw", label="Yaw     ", minimum=-180, maximum=180, value=0, step=5, interactive=True)
-                            inpaintZoom = gr.Slider(elem_id="panorama_tools_inpaint_zoom", label="Zoom     ", minimum=0, maximum=10, value=1, step=0.05, interactive=True)
-                            copyPreviewSettings = ToolButton('👁️', tooltip=f"Copy pitch/yaw/zoom from preview.")
+                            inpaintFov = gr.Slider(elem_id="panorama_tools_inpaint_fov", label="Field of View", minimum=0, maximum=180, value=90, step=5, interactive=True)
+                            copyPreviewSettings = ToolButton('👁️', tooltip=f"Copy pitch/yaw/fov from preview.")
                         with gr.Row(variant="compact"):    
                             inpaintMaskBlur = gr.Slider(label="Mask Blur", minimum=0, maximum=10, value=1, step=0.05, interactive=True)
 
@@ -177,7 +164,7 @@ def on_ui_tabs():
         
         previewPitch.change(None, [previewPitch], None, _js="(v) => {setParameter('pitch', v, 'preview_3d')}")
         previewYaw.change(None, [previewYaw], None, _js="(v) => {setParameter('yaw', v, 'preview_3d')}")
-        previewZoom.change(None, [previewZoom], None, _js="(v) => {setParameter('zoom', v, 'preview_3d')}")
+        previewFov.change(None, [previewFov], None, _js="(v) => {setParameter('fov', v, 'preview_3d')}")
 
         reorientPitch.change(None, [reorientPitch], None, _js="(v) => {setParameter('reorientPitch', v)}")
         reorientYaw.change(None, [reorientYaw], None, _js="(v) => {setParameter('reorientYaw', v)}")
@@ -187,7 +174,7 @@ def on_ui_tabs():
         inpaintEnable.change(None, [inpaintEnable], None, _js="(v) => {setParameter('maskEnable', (v ? 1.0:0.0))}")
         inpaintPitch.change(None, [inpaintPitch], None, _js="(v) => {setParameter('maskPitch', v)}")
         inpaintYaw.change(None, [inpaintYaw], None, _js="(v) => {setParameter('maskYaw', v)}")
-        inpaintZoom.change(None, [inpaintZoom], None, _js="(v) => {setParameter('maskZoom', v)}")
+        inpaintFov.change(None, [inpaintFov], None, _js="(v) => {setParameter('maskFov', v)}")
         inpaintMaskBlur.change(None, [inpaintMaskBlur], None, _js="(v) => {setParameter('maskBlend', v)}")
 
         previewWidth.change(None, [previewWidth, previewHeight], None, _js="(w,h) => {updateResolution('preview_3d', w, h)}")

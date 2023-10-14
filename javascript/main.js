@@ -1,24 +1,25 @@
 //Shader state variables
 shaderState =
 {
-    yaw:           {type: "float", value: 0.0},
-    pitch:         {type: "float", value: 0.0},
-    zoom:          {type: "float", value: 1.0},
-    maskYaw:       {type: "float", value: 0.0},
-    maskPitch:     {type: "float", value: 0.0},
-    maskZoom :     {type: "float", value: 1.0},
-    maskBlend:     {type: "float", value: 0.0},
-    maskEnable:    {type: "float", value: 0.0},
-    reorientYaw:   {type: "float", value: 0.0},
-    reorientPitch: {type: "float", value: 0.0},
-    offsetTop:     {type: "float", value: 0.0},
-    offsetBottom:  {type: "float", value: 0.0}
+    yaw:           {type: "float", value:  0.0},
+    pitch:         {type: "float", value:  0.0},
+    fov:           {type: "float", value: 90.0},
+    maskYaw:       {type: "float", value:  0.0},
+    maskPitch:     {type: "float", value:  0.0},
+    maskFov :      {type: "float", value: 90.0},
+    maskBlend:     {type: "float", value:  0.0},
+    maskEnable:    {type: "float", value:  0.0},
+    reorientYaw:   {type: "float", value:  0.0},
+    reorientPitch: {type: "float", value:  0.0},
+    offsetTop:     {type: "float", value:  0.0},
+    offsetBottom:  {type: "float", value:  0.0}
 }
 
 defaultColor = [128,128,128,255]
 maxUndoSteps = 5
 angleResolution = 2
-zoomResolution = 3
+fovResolution = 2
+zoomSensitivity = 0.05;
 
 extensionBaseUrl = ""
 panoramaInputUndoBuffer = [];
@@ -65,10 +66,10 @@ function tabMouseMove(e)
     {
         if(e.buttons & 1 === 1) //Left/Primary mouse button clicked
         {
-            //Adjust mouse sensitivity with zoom
+            //Adjust mouse sensitivity with fov
             var canvasWidth = shaderViews["preview_3d"].canvas.clientWidth;
-            var zoom = shaderState.zoom.value;
-            var mouseSensitivity = (180.0/Math.PI)*Math.atan(1.0/zoom)/(canvasWidth/2);
+            var fov = shaderState.fov.value;
+            var mouseSensitivity = fov/canvasWidth;
             
             var yaw = shaderState.yaw.value - mouseSensitivity*e.movementX;
             var pitch = shaderState.pitch.value - mouseSensitivity*-e.movementY;
@@ -94,18 +95,12 @@ function tabMouseWheel(e)
 {
     if(mouseDragPreview3D || mouseOverPreview3D)
     {
-        var zoom = shaderState.zoom.value;
+        var fov = parseFloat(shaderState.fov.value);
+        
+        fov += e.deltaY * zoomSensitivity;
+        fov = Math.max(0,Math.min(180,fov));
 
-        if(e.deltaY < 0)
-        {
-            zoom = zoom*1.1;
-        }
-        else
-        {
-            zoom = zoom/1.1;
-        }
-
-        setParameter('zoom', zoom.toFixed(zoomResolution), 'preview_3d')
+        setParameter('fov', fov.toFixed(fovResolution), 'preview_3d')
         updatePreviewSliders()
         e.preventDefault();
     }
@@ -419,7 +414,7 @@ function updatePreviewSliders()
     var gApp = gradioApp();
     setGradioSliderValue(gApp, "panorama_tools_preview_pitch", shaderState.pitch.value)
     setGradioSliderValue(gApp, "panorama_tools_preview_yaw", shaderState.yaw.value)
-    setGradioSliderValue(gApp, "panorama_tools_preview_zoom", shaderState.zoom.value)
+    setGradioSliderValue(gApp, "panorama_tools_preview_fov", shaderState.fov.value)
 }
 
 //Copy the preview slider values to the inpainting sliders to align inpainting with current view.
@@ -429,11 +424,11 @@ function copyPreviewSettingsToInpaint()
 
     setGradioSliderValue(gApp, "panorama_tools_inpaint_pitch", shaderState.pitch.value)
     setGradioSliderValue(gApp, "panorama_tools_inpaint_yaw", shaderState.yaw.value)
-    setGradioSliderValue(gApp, "panorama_tools_inpaint_zoom", shaderState.zoom.value)
+    setGradioSliderValue(gApp, "panorama_tools_inpaint_fov", shaderState.fov.value)
 
     setParameter('maskPitch', shaderState.pitch.value)
     setParameter('maskYaw', shaderState.yaw.value)
-    setParameter('maskZoom', shaderState.zoom.value)
+    setParameter('maskFov', shaderState.fov.value)
 }
 
 //Laod panorama image to both 2d/3d previews, add to undo buffer.

@@ -5,11 +5,11 @@ precision highp float;
 uniform vec2 resolution;
 uniform float pitch;
 uniform float yaw;
-uniform float zoom;
+uniform float fov;
 
 uniform float maskYaw;
 uniform float maskPitch;
-uniform float maskZoom;
+uniform float maskFov;
 uniform float maskBlend;
 uniform float maskEnable;
 
@@ -70,10 +70,11 @@ void main(void)
     vec3 dir = vec3(sin(ang.x),sin(ang.y),cos(ang.x));
     dir.xz *= cos(ang.y);
 
+    float focalLen = 1.0/tan(0.5*maskFov*PI/180.0);
     vec3 maskDir = dir;
     maskDir = rotateY(maskDir, radians(-maskYaw));
     maskDir = rotateX(maskDir, radians(maskPitch));
-    maskDir = normalize(maskDir/vec3(1,1,maskZoom));
+    maskDir = normalize(maskDir/vec3(1,1,focalLen));
 
     vec2 maskUV = vec2(atan(maskDir.x,maskDir.z), atan(maskDir.y,length(maskDir.xz)));
     maskUV = fract(maskUV/vec2(PI/2.0,PI/2.0) + 0.5);
