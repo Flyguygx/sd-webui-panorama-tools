@@ -1,5 +1,27 @@
-//Shader state variables
-shaderState =
+//Pre-defined constants
+defaultResolution = [512, 512, 1024, 2048]; //Preview width/height, Panorama width/height
+defaultColor = [128,128,128,255];
+defaultFov = 90;
+maxUndoSteps = 5;
+angleResolution = 2;
+fovResolution = 2;
+zoomSensitivity = 0.05; //Degrees FOV per scroll unit
+predefinedViews =
+{
+    front: {yaw:   0, pitch:  0},
+    back:  {yaw: 180, pitch:  0},
+    left:  {yaw: -90, pitch:  0},
+    right: {yaw:  90, pitch:  0},
+    up:    {yaw:   0, pitch: 90},
+    down:  {yaw:   0, pitch:-90},
+}
+
+//Variables
+extensionBaseUrl = "";
+panoramaInputUndoBuffer = [];
+inpaintInputUndoBuffer = [];
+lastPreviewSettings = {yaw: 0, pitch: 0, fov: defaultFov};
+shaderState = //Shader state variables
 {
     yaw:           {type: "float", value:  0.0},
     pitch:         {type: "float", value:  0.0},
@@ -14,26 +36,6 @@ shaderState =
     offsetTop:     {type: "float", value:  0.0},
     offsetBottom:  {type: "float", value:  0.0}
 }
-
-defaultResolution = [512, 512, 1024, 2048] //Preview width/height, Panorama width/height
-defaultColor = [128,128,128,255]
-maxUndoSteps = 5
-angleResolution = 2
-fovResolution = 2
-zoomSensitivity = 0.05; //Degrees FOV per scroll unit
-predefinedViews =
-{
-    front: {yaw:   0, pitch:  0},
-    back:  {yaw: 180, pitch:  0},
-    left:  {yaw: -90, pitch:  0},
-    right: {yaw:  90, pitch:  0},
-    up:    {yaw:   0, pitch: 90},
-    down:  {yaw:   0, pitch:-90},
-}
-
-extensionBaseUrl = ""
-panoramaInputUndoBuffer = [];
-inpaintInputUndoBuffer = [];
 
 mouseOverPreview3D = false; //Mouse is over 3D preview
 mouseDragPreview3D = false; //Click and drag started in 3D preview
@@ -527,4 +529,26 @@ function setPredefinedView(viewName)
         setGradioSliderValue(gApp, "panorama_tools_preview_pitch", preDefView.pitch)
         setGradioSliderValue(gApp, "panorama_tools_preview_yaw", preDefView.yaw)
     }
+}
+
+//Save the preview settings
+function savePreviewSettings()
+{
+    lastPreviewSettings.yaw = shaderState.yaw.value;
+    lastPreviewSettings.pitch = shaderState.pitch.value;
+    lastPreviewSettings.fov = shaderState.fov.value;
+}
+
+//Send the last saved preview settings to inpaint
+function copyLastPreviewSettingsToInpaint()
+{
+    var gApp = gradioApp();
+
+    setGradioSliderValue(gApp, "panorama_tools_inpaint_pitch", lastPreviewSettings.pitch);
+    setGradioSliderValue(gApp, "panorama_tools_inpaint_yaw", lastPreviewSettings.yaw);
+    setGradioSliderValue(gApp, "panorama_tools_inpaint_fov", lastPreviewSettings.fov);
+
+    setParameter('maskPitch', lastPreviewSettings.pitch);
+    setParameter('maskYaw', lastPreviewSettings.yaw);
+    setParameter('maskFov', lastPreviewSettings.fov);
 }

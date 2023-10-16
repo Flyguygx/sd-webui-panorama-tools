@@ -83,7 +83,8 @@ def on_ui_tabs():
                             inpaintPitch = gr.Slider(elem_id="panorama_tools_inpaint_pitch", label="Pitch     ", minimum=-90, maximum=90, value=0, step=5, interactive=True)
                             inpaintYaw = gr.Slider(elem_id="panorama_tools_inpaint_yaw", label="Yaw     ", minimum=-180, maximum=180, value=0, step=5, interactive=True)
                             inpaintFov = gr.Slider(elem_id="panorama_tools_inpaint_fov", label="Field of View", minimum=0, maximum=180, value=90, step=5, interactive=True)
-                            copyPreviewSettings = ToolButton('👁️', tooltip=f"Copy pitch/yaw/fov from preview.")
+                            copyLastPreviewSettings = ToolButton('🖼️', tooltip=f"Copy pitch/yaw/fov from last preview snapshot.")
+                            copyPreviewSettings = ToolButton('👁️', tooltip=f"Copy pitch/yaw/fov from current preview.")
                         with gr.Row(variant="compact"):    
                             inpaintMaskBlur = gr.Slider(label="Mask Blur", minimum=0, maximum=10, value=1, step=0.05, interactive=True)
 
@@ -129,6 +130,9 @@ def on_ui_tabs():
         previewUp.click(fn=None,show_progress=False, _js="() => {setPredefinedView('up')}")
         previewDown.click(fn=None,show_progress=False, _js="() => {setPredefinedView('down')}")
 
+        copyLastPreviewSettings.click(fn=None,inputs=[],outputs=[],show_progress=False,
+                                  _js="() => {copyLastPreviewSettingsToInpaint()}")
+        
         copyPreviewSettings.click(fn=None,inputs=[],outputs=[],show_progress=False,
                                   _js="() => {copyPreviewSettingsToInpaint()}")
         
@@ -175,13 +179,13 @@ def on_ui_tabs():
                                 _js="() => {return downloadShaderViewImage('preview_2d', 'panorama.png')}")
 
         send3DImgToImg2Img.click(fn=None,inputs=[],outputs=[sendto_inputs["img2img"]["component"]],show_progress=False,
-                                 _js="() => {return sendShaderViewTo('preview_3d','img2img')}")
+                                 _js="() => {savePreviewSettings(); return sendShaderViewTo('preview_3d','img2img');}")
         
         send3DImgToInpaint.click(fn=None,inputs=[],outputs=[sendto_inputs["inpaint"]["component"]],show_progress=False,
-                                 _js="() => {return sendShaderViewTo('preview_3d','inpaint')}")
+                                 _js="() => {savePreviewSettings(); return sendShaderViewTo('preview_3d','inpaint');}")
 
         send3DImgToExtras.click(fn=None,inputs=[],outputs=[sendto_inputs["extras"]["component"]],show_progress=False,
-                                _js="() => {return sendShaderViewTo('preview_3d','extras')}")
+                                _js="() => {savePreviewSettings(); return sendShaderViewTo('preview_3d','extras');}")
         
         #Slider change events
         previewPitch.change(None, [previewPitch], None, _js="(v) => {setParameter('pitch', v, 'preview_3d')}")
