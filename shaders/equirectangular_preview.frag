@@ -99,7 +99,7 @@ void main(void)
 
     vec4 col = samplePanorama(equirectangular,texUV, offsetTop, offsetBottom);
     vec4 fill = samplePanorama(inpainting,maskUV, 0.0, 0.0);
-    col = mix(col,fill,clip);
+    col = mix(col,fill,clip*fill.a);
 
     fragColor = vec4(col.rgb,1.0);  
 }
