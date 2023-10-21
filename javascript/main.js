@@ -43,7 +43,7 @@ mouseDragPreview3D = false; //Click and drag started in 3D preview
 shaderViews = {};
 textures = {};
 
-async function initialize(baseUrl)
+async function initialize(baseUrl, defaultImgUrl)
 {
     extensionBaseUrl = baseUrl;
     
@@ -69,6 +69,8 @@ async function initialize(baseUrl)
     //Setup render-to texture for 3D preview
     var previewTexture = createPlaceholderTexture(shaderViews["preview_3d"], "equirectangular", defaultColor);
     shaderViews["preview_2d"].renderToTextures.push(previewTexture);
+
+    loadPanoramaImage(defaultImgUrl)
 
     //Redraw all views
     redrawView("");

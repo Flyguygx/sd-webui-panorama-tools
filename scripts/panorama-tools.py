@@ -12,6 +12,8 @@ sendto_inputs = {
     "extras" : {"elem_id" : "extras_image", "component" : None}
 }
 
+defaultImage = "/images/default_panorama.png"
+
 class PanoramaToolsScript(scripts.Script):
     def __init__(self) -> None:
         super().__init__()
@@ -42,7 +44,7 @@ def on_ui_tabs():
                             source="upload",
                             type="numpy",
                             elem_id=f"panorama_input_image",
-                            elem_classes=["panorama-image"],
+                            elem_classes=["panorama-image"]
                         )
                         with gr.Row(variant="compact"):
                             copyPanoramaFromTxt2Img = gr.Button(value="From Txt2Img")
@@ -213,7 +215,8 @@ def on_ui_tabs():
         panorama_inpaint_input_image.change(None, [panorama_inpaint_input_image], None,  _js="(url) => {loadInpaintImage(url)}")
         
         #Initial loading
-        panorama_tools_ui.load(None, inputs=[], outputs=[], _js="(url) => {initialize('"+baseUrl+"')}")
+        panorama_input_image.value=baseUrl+"/images/default_panorama.png"
+        panorama_tools_ui.load(None, inputs=[], outputs=[], _js="() => {initialize('"+baseUrl+"','"+baseUrl+defaultImage+"')}")
 
     return [(panorama_tools_ui, "Panorama Tools", "panorama-tools")]
 
