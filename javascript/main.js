@@ -23,18 +23,18 @@ inpaintInputUndoBuffer = [];
 lastPreviewSettings = {yaw: 0, pitch: 0, fov: defaultFov};
 shaderState = //Shader state variables
 {
-    yaw:           {type: "float", value:  0.0},
-    pitch:         {type: "float", value:  0.0},
-    fov:           {type: "float", value: 90.0},
-    maskYaw:       {type: "float", value:  0.0},
-    maskPitch:     {type: "float", value:  0.0},
-    maskFov :      {type: "float", value: 90.0},
-    maskBlend:     {type: "float", value:  0.0},
-    maskEnable:    {type: "float", value:  0.0},
-    reorientYaw:   {type: "float", value:  0.0},
-    reorientPitch: {type: "float", value:  0.0},
-    offsetTop:     {type: "float", value:  0.0},
-    offsetBottom:  {type: "float", value:  0.0}
+    yaw:           {type: "float", value:  0.00},
+    pitch:         {type: "float", value:  0.00},
+    fov:           {type: "float", value: 90.00},
+    maskYaw:       {type: "float", value:  0.00},
+    maskPitch:     {type: "float", value:  0.00},
+    maskFov :      {type: "float", value: 90.00},
+    maskBlend:     {type: "float", value:  0.01},
+    maskEnable:    {type: "float", value:  0.00},
+    reorientYaw:   {type: "float", value:  0.00},
+    reorientPitch: {type: "float", value:  0.00},
+    offsetTop:     {type: "float", value:  0.00},
+    offsetBottom:  {type: "float", value:  0.00}
 }
 
 mouseOverPreview3D = false; //Mouse is over 3D preview

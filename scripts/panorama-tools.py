@@ -86,7 +86,7 @@ def on_ui_tabs():
                             copyLastPreviewSettings = ToolButton('🖼️', tooltip=f"Copy pitch/yaw/fov from last preview snapshot.")
                             copyPreviewSettings = ToolButton('👁️', tooltip=f"Copy pitch/yaw/fov from current preview.")
                         with gr.Row(variant="compact"):    
-                            inpaintMaskBlur = gr.Slider(label="Mask Blur", minimum=0, maximum=10, value=1, step=0.05, interactive=True)
+                            inpaintMaskBlur = gr.Slider(label="Mask Blur    ", minimum=0, maximum=1, value=0.01, step=0.01, interactive=True)
 
                 with gr.Row():
                     with gr.Accordion("Adjustments", open=True, elem_id="panorama_tools_edit", visible=True):
