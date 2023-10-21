@@ -2,9 +2,17 @@
 
 An extension for AUTOMATIC1111's [Stable Diffusion Web UI](https://github.com/AUTOMATIC1111/stable-diffusion-webui) which provides a number of tools for editing equirectangular panoramas.
 
-## Examples
+![UI Screenshot](images/panorama_tools_ui_screenshot.png)
 
-TBD
+## Examples
+Some examples made using this extension, all were outpainted starting from a normal image. 
+
+Only inpainting models were used, no LoRAs or panorama-specific prompts.
+
+[<img src="images/example_1.jpg" width="250"/>](images/example_1.jpg)
+[<img src="images/example_2.jpg" width="250"/>](images/example_2.jpg)
+[<img src="images/example_3.jpg" width="250"/>](images/example_3.jpg)
+[<img src="images/example_4.jpg" width="250"/>](images/example_4.jpg)
 
 ## Controls
 
