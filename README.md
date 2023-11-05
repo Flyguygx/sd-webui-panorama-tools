@@ -48,7 +48,8 @@ Only inpainting models were used, no LoRAs or panorama-specific prompts.
 ### Resolution
  * **Preview Width / Height** - Render resolution of the 3D preview and images sent to other tabs.
  * **Panorama Width / Height** - Render resolution of the 2D preview and images sent to other tabs.
- * **Copy Input Resolution** - Copy the resolution of the input panorama & calculate preview resolution.
+ * **From Panorama Image** - Calculate panorama & preview resolutions from panorama input image.
+ * **From Inpaint Image** - Calculate panorama & preview resolutions from panorama inpaint image.
 
 ## Outputs
 
@@ -71,9 +72,7 @@ Using an inpainting model is recommended.
 1. Enable inpainting in Panorama Tools tab.
 2. Import a starting image using the "From *" buttons or by dragging in a starting image.
     * For generated images, send the image to inpainting to copy the prompt/settings.
-3. Set the resolution of the preview & panorama
-    * Preview resolution - Inpainting image resolution
-    * Panorama resolution - Width = 4x inpainting width, Height = 2x inpainting height 
+3. Click Resolution -> From Inpaint Image to set the resolution of the preview & panorama.
 4. Adjust field of view & pitch in the inpainting controls until the perspective looks right in the 3d preview.
 5. Click "From Output" under the panorama input to apply the inpainting image.
 6. Angle the 3D preview to show roughly 1/2 - 1/3 of the previous image.

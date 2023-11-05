@@ -375,6 +375,14 @@ panorama_tools = (function(){
         return img ? [img.naturalWidth/4, img.naturalHeight/2, img.naturalWidth, img.naturalHeight] : defaultResolution;
     }
 
+    //Returns the preview resolution calculated from the input resolution & input resolution
+    let viewResolutionFromInpaint = function() 
+    {
+        let img = gradioApp().querySelector('#panorama_inpaint_input_image img');
+        return img ? [img.naturalWidth, img.naturalHeight, img.naturalWidth*4, img.naturalHeight*2] : defaultResolution;
+    }
+    
+
     //Gets the selected image (or first if none selected) in the gallery of the specified webui tab.
     let getSelectedImageOnTab = function(tab)
     {
@@ -564,6 +572,7 @@ panorama_tools = (function(){
         revertInpaintImage,
         setPredefinedView,
         viewResolutionFromInput,
+        viewResolutionFromInpaint,
         sendShaderViewTo,
         downloadShaderViewImage,
         setParameter,

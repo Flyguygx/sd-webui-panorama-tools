@@ -105,7 +105,9 @@ def on_ui_tabs():
                         previewHeight = gr.Slider(label="Preview Height ", minimum=64, maximum=2048, value=512, step=64, interactive=True)
                         panoramaWidth = gr.Slider(label="Panorama Width ", minimum=64, maximum=4096, value=2048, step=64, interactive=True)
                         panoramaHeight = gr.Slider(label="Panorama Height ", minimum=64, maximum=4096, value=1024, step=64, interactive=True)
-                        copyPanoramaInputRes = gr.Button(value="Copy Input Resolution")
+                        with gr.Row():
+                            copyPanoramaInputRes = gr.Button(value="From Panorama Image")
+                            copyInpaintInputRes = gr.Button(value="From Inpaint Image")
 
             with gr.Column():
                 with gr.Row():
@@ -140,6 +142,9 @@ def on_ui_tabs():
         
         copyPanoramaInputRes.click(fn=None,inputs=[],outputs=[previewWidth, previewHeight, panoramaWidth, panoramaHeight],show_progress=False,
                                    _js="() => {return panorama_tools.viewResolutionFromInput()}")
+        
+        copyInpaintInputRes.click(fn=None,inputs=[],outputs=[previewWidth, previewHeight, panoramaWidth, panoramaHeight],show_progress=False,
+                                   _js="() => {return panorama_tools.viewResolutionFromInpaint()}")
         
         copyPanoramaFromTxt2Img.click(fn=None,inputs=[],outputs=[panorama_input_image],show_progress=False,
                                       _js="() => {return panorama_tools.getSelectedImageOnTab('txt2img')}")
