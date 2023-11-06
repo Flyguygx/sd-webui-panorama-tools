@@ -1,10 +1,14 @@
 import contextlib
 import os
+import io
 import gradio as gr
 from modules import scripts
 from modules import script_callbacks
 from modules import shared
 from modules.ui_components import ToolButton
+
+from PIL import Image
+import base64
 
 sendto_inputs = {
     "img2img" : {"elem_id" : "img2img_image", "component" : None},
@@ -36,6 +40,7 @@ def get_extension_base_url():
 def on_ui_tabs():
     #UI layout
     with gr.Blocks(analytics_enabled=False) as panorama_tools_ui:
+        dummyComponent = gr.Label(visible=False)
         with gr.Row():
             with gr.Column():
                 with gr.Row():
@@ -60,10 +65,10 @@ def on_ui_tabs():
                             previewYaw = gr.Slider(elem_id="panorama_tools_preview_yaw", label="Yaw    ", minimum=-180, maximum=180, value=0, step=5, interactive=True)
                             previewFov = gr.Slider(elem_id="panorama_tools_preview_fov", label="Field of View ", minimum=0, maximum=180, value=90, step=5, interactive=True)
                         with gr.Row(variant="compact"): 
-                            previewFront = gr.Button(value="Front", min_width=100)
-                            previewBack = gr.Button(value="Back", min_width=100)
                             previewLeft = gr.Button(value="Left", min_width=100)
+                            previewFront = gr.Button(value="Front", min_width=100)
                             previewRight = gr.Button(value="Right", min_width=100)
+                            previewBack = gr.Button(value="Back", min_width=100)
                             previewUp = gr.Button(value="Up", min_width=100)
                             previewDown = gr.Button(value="Down", min_width=100)
 
@@ -124,6 +129,20 @@ def on_ui_tabs():
                     send2DImgToInpaint = gr.Button(value="Send To Inpaint")
                     send2DImgToExtras = gr.Button(value="Send To Extras")
                     save2DImage = ToolButton('💾', tooltip=f"Save panorama image.")
+                with gr.Row(variant="compact"):
+                    cubemapFaceGallery = gr.Gallery(label="Cubemap Faces", show_label=True, elem_id="panorama_tools_cubemap_gallery", 
+                                                    columns=[4], rows=[2], object_fit="contain", height="auto")
+                with gr.Row(variant="compact"):
+                    generateCubemapFaces = gr.Button(value="Generate Cubemap Faces", elem_id="panorama_tools_gen_cubemap_button")
+
+        #Updates the cubemap face gallery with 6 images passed as base64 dataURLs
+        def update_cubemap_face_gallery(*args):
+            faceImages = []
+            for imgDataUrl in args:
+                imgBase64 = imgDataUrl.split(',',1)[1];
+                imagePIL = Image.open(io.BytesIO(base64.b64decode(imgBase64)))
+                faceImages.append(imagePIL)
+            return faceImages
 
         #UI event handling
         #Button click events
@@ -193,6 +212,12 @@ def on_ui_tabs():
 
         send3DImgToExtras.click(fn=None,inputs=[],outputs=[sendto_inputs["extras"]["component"]],show_progress=False,
                                 _js="() => {panorama_tools.savePreviewSettings(); return panorama_tools.sendShaderViewTo('preview_3d','extras');}")
+        
+        #Need dummyComponents in input or Gradio won't pass all of the objects in the array returned form JS
+        generateCubemapFaces.click(fn=update_cubemap_face_gallery,
+                                   inputs=[dummyComponent,dummyComponent,dummyComponent,dummyComponent,dummyComponent,dummyComponent],
+                                   outputs=[cubemapFaceGallery],show_progress=True,
+                                   _js="() => {return panorama_tools.renderCubemapFaces()}")
         
         #Slider change events
         previewPitch.change(None, [previewPitch], None, _js="(v) => {panorama_tools.setParameter('pitch', v, 'preview_3d')}")

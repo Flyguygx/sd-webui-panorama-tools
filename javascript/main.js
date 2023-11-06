@@ -195,11 +195,13 @@ panorama_tools = (function(){
     }
 
     //Set a named shader state parameter and re-draw all or a named shader view.
-    let setParameter = function(name, value, shaderViewName = "")
+    let setParameter = function(name, value, shaderViewName = "", redraw = true)
     {
         shaderState[name].value = value;
-
-        redrawView(shaderViewName);
+        if(redraw)
+        {
+            redrawView(shaderViewName);
+        }
     }
 
     //Update a list of shader uniforms for a given shader view
@@ -563,6 +565,47 @@ panorama_tools = (function(){
         setParameter('maskFov', lastPreviewSettings.fov);
     }
 
+    //Renders cubemap faces and returns a list with the image data for each face.
+    //TODO:Find a faster way to do this, passing dataURLs to Gradio is quite slow for large images.
+    let renderCubemapFaces = function()
+    {
+        let shaderViewName = "preview_3d";
+        let canvas = shaderViews[shaderViewName].canvas;
+        let curPitch = shaderState.pitch.value;
+        let curYaw = shaderState.yaw.value;
+        let curFov = shaderState.fov.value;
+        let faces = [];
+
+        let faceAngles = [
+            {yaw: -90, pitch:  0}, //left
+            {yaw:   0, pitch:  0}, //front
+            {yaw:  90, pitch:  0}, //right            
+            {yaw: 180, pitch:  0}, //back
+            {yaw:   0, pitch: 90}, //up
+            {yaw:   0, pitch:-90}  //down
+        ];
+        
+        setParameter('fov', 90, shaderViewName, false);
+
+        for(const face of faceAngles)
+        {
+            setParameter('pitch', face.pitch, shaderViewName, false);
+            setParameter('yaw', face.yaw, shaderViewName, false);
+            redrawView(shaderViewName);
+            
+            let data = canvas.toDataURL("image/png", 1.0);
+            faces.push(data);
+        }
+
+        //Reset view angles
+        setParameter('pitch', curPitch, shaderViewName, false);
+        setParameter('yaw', curYaw, shaderViewName, false);
+        setParameter('fov', curFov, shaderViewName, false);
+        redrawView(shaderViewName);
+
+        return faces;
+    }
+
     //Exported functions to be called from Python
     return {
         initialize,
@@ -581,6 +624,7 @@ panorama_tools = (function(){
         copyLastPreviewSettingsToInpaint,
         copyPreviewSettingsToInpaint,
         getSelectedImageOnTab,
-        getShaderViewImage
+        getShaderViewImage,
+        renderCubemapFaces
     };
 })();
