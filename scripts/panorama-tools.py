@@ -41,99 +41,106 @@ def on_ui_tabs():
     #UI layout
     with gr.Blocks(analytics_enabled=False) as panorama_tools_ui:
         dummyComponent = gr.Label(visible=False)
-        with gr.Row():
-            with gr.Column():
-                with gr.Row():
-                    with gr.Accordion("Input", open=True, elem_id="panorama_tools_input", visible=True):
-                        panorama_input_image = gr.Image(
-                            source="upload",
-                            type="numpy",
-                            elem_id=f"panorama_input_image",
-                            elem_classes=["panorama-image"]
-                        )
-                        with gr.Row(variant="compact"):
-                            copyPanoramaFromTxt2Img = gr.Button(value="From Txt2Img")
-                            copyPanoramaFromImg2Img = gr.Button(value="From Img2Img")
-                            copyPanoramaFromExtras = gr.Button(value="From Extras")
-                            copyPanoramaFromOutput = gr.Button(value="From Output")
-                            previousPanoramaImage = ToolButton('↩️', tooltip=f"Revert to previous panorama image")
+        with gr.Tab("Editor"):
+            with gr.Row():
+                with gr.Column():
+                    with gr.Row():
+                        with gr.Accordion("Input", open=True, elem_id="panorama_tools_input", visible=True):
+                            panorama_input_image = gr.Image(
+                                source="upload",
+                                type="numpy",
+                                elem_id=f"panorama_input_image",
+                                elem_classes=["panorama-image"]
+                            )
+                            with gr.Row(variant="compact"):
+                                copyPanoramaFromTxt2Img = gr.Button(value="From Txt2Img")
+                                copyPanoramaFromImg2Img = gr.Button(value="From Img2Img")
+                                copyPanoramaFromExtras = gr.Button(value="From Extras")
+                                copyPanoramaFromOutput = gr.Button(value="From Output")
+                                previousPanoramaImage = ToolButton('↩️', tooltip=f"Revert to previous panorama image")
 
-                with gr.Row():
-                    with gr.Accordion("Preview", open=True, elem_id="panorama_tools_preview", visible=True):
-                        with gr.Row(variant="compact"): 
-                            previewPitch = gr.Slider(elem_id="panorama_tools_preview_pitch", label="Pitch    ", minimum=-90, maximum=90, value=0, step=5, interactive=True)
-                            previewYaw = gr.Slider(elem_id="panorama_tools_preview_yaw", label="Yaw    ", minimum=-180, maximum=180, value=0, step=5, interactive=True)
-                            previewFov = gr.Slider(elem_id="panorama_tools_preview_fov", label="Field of View ", minimum=0, maximum=180, value=90, step=5, interactive=True)
-                        with gr.Row(variant="compact"): 
-                            previewLeft = gr.Button(value="Left", min_width=100)
-                            previewFront = gr.Button(value="Front", min_width=100)
-                            previewRight = gr.Button(value="Right", min_width=100)
-                            previewBack = gr.Button(value="Back", min_width=100)
-                            previewUp = gr.Button(value="Up", min_width=100)
-                            previewDown = gr.Button(value="Down", min_width=100)
+                    with gr.Row():
+                        with gr.Accordion("Preview", open=True, elem_id="panorama_tools_preview", visible=True):
+                            with gr.Row(variant="compact"): 
+                                previewPitch = gr.Slider(elem_id="panorama_tools_preview_pitch", label="Pitch    ", minimum=-90, maximum=90, value=0, step=5, interactive=True)
+                                previewYaw = gr.Slider(elem_id="panorama_tools_preview_yaw", label="Yaw    ", minimum=-180, maximum=180, value=0, step=5, interactive=True)
+                                previewFov = gr.Slider(elem_id="panorama_tools_preview_fov", label="Field of View ", minimum=0, maximum=180, value=90, step=5, interactive=True)
+                            with gr.Row(variant="compact"): 
+                                previewLeft = gr.Button(value="Left", min_width=100)
+                                previewFront = gr.Button(value="Front", min_width=100)
+                                previewRight = gr.Button(value="Right", min_width=100)
+                                previewBack = gr.Button(value="Back", min_width=100)
+                                previewUp = gr.Button(value="Up", min_width=100)
+                                previewDown = gr.Button(value="Down", min_width=100)
 
-                with gr.Row():
-                    with gr.Accordion("Inpainting", open=True, elem_id="panorama_tools_inpaint", visible=True):
-                        inpaintEnable = gr.Checkbox(label="Enable")  
-                        panorama_inpaint_input_image = gr.Image(
-                            source="upload",
-                            type="numpy",
-                            elem_id=f"panorama_inpaint_input_image",
-                            elem_classes=["panorama-image"],
-                        )
-                        with gr.Row(variant="compact"):        
-                            copyInpaintFromTxt2Img = gr.Button(value="From Txt2Img")
-                            copyInpaintFromImg2Img = gr.Button(value="From Img2Img")
-                            copyInpaintFromExtras = gr.Button(value="From Extras")
-                            previousInpaintImage = ToolButton('↩️', tooltip=f"Revert to previous inpainting image")                           
-                        with gr.Row(variant="compact"):    
-                            inpaintPitch = gr.Slider(elem_id="panorama_tools_inpaint_pitch", label="Pitch     ", minimum=-90, maximum=90, value=0, step=5, interactive=True)
-                            inpaintYaw = gr.Slider(elem_id="panorama_tools_inpaint_yaw", label="Yaw     ", minimum=-180, maximum=180, value=0, step=5, interactive=True)
-                            inpaintFov = gr.Slider(elem_id="panorama_tools_inpaint_fov", label="Field of View", minimum=0, maximum=180, value=90, step=5, interactive=True)
-                            copyLastPreviewSettings = ToolButton('🖼️', tooltip=f"Copy pitch/yaw/fov from last preview snapshot.")
-                            copyPreviewSettings = ToolButton('👁️', tooltip=f"Copy pitch/yaw/fov from current preview.")
-                        with gr.Row(variant="compact"):    
-                            inpaintMaskBlur = gr.Slider(label="Mask Blur    ", minimum=0, maximum=1, value=0.01, step=0.01, interactive=True)
+                    with gr.Row():
+                        with gr.Accordion("Inpainting", open=True, elem_id="panorama_tools_inpaint", visible=True):
+                            inpaintEnable = gr.Checkbox(label="Enable")  
+                            panorama_inpaint_input_image = gr.Image(
+                                source="upload",
+                                type="numpy",
+                                elem_id=f"panorama_inpaint_input_image",
+                                elem_classes=["panorama-image"],
+                            )
+                            with gr.Row(variant="compact"):        
+                                copyInpaintFromTxt2Img = gr.Button(value="From Txt2Img")
+                                copyInpaintFromImg2Img = gr.Button(value="From Img2Img")
+                                copyInpaintFromExtras = gr.Button(value="From Extras")
+                                previousInpaintImage = ToolButton('↩️', tooltip=f"Revert to previous inpainting image")                           
+                            with gr.Row(variant="compact"):    
+                                inpaintPitch = gr.Slider(elem_id="panorama_tools_inpaint_pitch", label="Pitch     ", minimum=-90, maximum=90, value=0, step=5, interactive=True)
+                                inpaintYaw = gr.Slider(elem_id="panorama_tools_inpaint_yaw", label="Yaw     ", minimum=-180, maximum=180, value=0, step=5, interactive=True)
+                                inpaintFov = gr.Slider(elem_id="panorama_tools_inpaint_fov", label="Field of View", minimum=0, maximum=180, value=90, step=5, interactive=True)
+                                copyLastPreviewSettings = ToolButton('🖼️', tooltip=f"Copy pitch/yaw/fov from last preview snapshot.")
+                                copyPreviewSettings = ToolButton('👁️', tooltip=f"Copy pitch/yaw/fov from current preview.")
+                            with gr.Row(variant="compact"):    
+                                inpaintMaskBlur = gr.Slider(label="Mask Blur    ", minimum=0, maximum=1, value=0.01, step=0.01, interactive=True)
 
-                with gr.Row():
-                    with gr.Accordion("Adjustments", open=True, elem_id="panorama_tools_edit", visible=True):
-                        with gr.Row():
-                            reorientPitch = gr.Slider(label="Reorient Pitch      ", minimum=-90, maximum=90, value=0, step=5, interactive=True)
-                            reorientYaw = gr.Slider(label="Reorient Yaw     ", minimum=-180, maximum=180, value=0, step=5, interactive=True)
-                        with gr.Row():
-                            offsetTop = gr.Slider(label="Upper Pole Offset", minimum=0, maximum=1, value=0, step=0.01, interactive=True)
-                            offsetBottom = gr.Slider(label="Lower Pole Offset", minimum=0, maximum=1, value=0, step=0.01, interactive=True)
+                    with gr.Row():
+                        with gr.Accordion("Adjustments", open=True, elem_id="panorama_tools_edit", visible=True):
+                            with gr.Row():
+                                reorientPitch = gr.Slider(label="Reorient Pitch      ", minimum=-90, maximum=90, value=0, step=5, interactive=True)
+                                reorientYaw = gr.Slider(label="Reorient Yaw     ", minimum=-180, maximum=180, value=0, step=5, interactive=True)
+                            with gr.Row():
+                                offsetTop = gr.Slider(label="Upper Pole Offset", minimum=0, maximum=1, value=0, step=0.01, interactive=True)
+                                offsetBottom = gr.Slider(label="Lower Pole Offset", minimum=0, maximum=1, value=0, step=0.01, interactive=True)
 
-                with gr.Row():
-                    with gr.Accordion("Resolution", open=True, elem_id="panorama_tools_resolution", visible=True):
-                        previewWidth = gr.Slider(label="Preview Width ", minimum=64, maximum=2048, value=512, step=64, interactive=True)
-                        previewHeight = gr.Slider(label="Preview Height ", minimum=64, maximum=2048, value=512, step=64, interactive=True)
-                        panoramaWidth = gr.Slider(label="Panorama Width ", minimum=64, maximum=4096, value=2048, step=64, interactive=True)
-                        panoramaHeight = gr.Slider(label="Panorama Height ", minimum=64, maximum=4096, value=1024, step=64, interactive=True)
-                        with gr.Row():
-                            copyPanoramaInputRes = gr.Button(value="From Panorama Image")
-                            copyInpaintInputRes = gr.Button(value="From Inpaint Image")
+                    with gr.Row():
+                        with gr.Accordion("Resolution", open=True, elem_id="panorama_tools_resolution", visible=True):
+                            previewWidth = gr.Slider(label="Preview Width ", minimum=64, maximum=2048, value=512, step=64, interactive=True)
+                            previewHeight = gr.Slider(label="Preview Height ", minimum=64, maximum=2048, value=512, step=64, interactive=True)
+                            panoramaWidth = gr.Slider(label="Panorama Width ", minimum=64, maximum=4096, value=2048, step=64, interactive=True)
+                            panoramaHeight = gr.Slider(label="Panorama Height ", minimum=64, maximum=4096, value=1024, step=64, interactive=True)
+                            with gr.Row():
+                                copyPanoramaInputRes = gr.Button(value="From Panorama Image")
+                                copyInpaintInputRes = gr.Button(value="From Inpaint Image")
 
-            with gr.Column():
-                with gr.Row():
-                    preview_canvas = gr.HTML('<canvas id="panotools_preview_canvas" width="512" height="512" style="width: 512px; height: 512px;margin: 0.25rem; border-radius: 0.25rem; border: 0.5px solid"></canvas>')
-                with gr.Row(variant="compact"):
-                    send3DImgToImg2Img = gr.Button(value="Send To Img2Img")
-                    send3DImgToInpaint = gr.Button(value="Send To Inpaint")
-                    send3DImgToExtras = gr.Button(value="Send To Extras")
+                with gr.Column():
+                    with gr.Group(elem_id="panorama_tools_output_group"):
+                        with gr.Tab("3D Preview"):
+                            preview_canvas = gr.HTML('<canvas id="panotools_preview_canvas" width="512" height="512" style="width: 100%; height: 100%;margin: 0.25rem; border-radius: 0.25rem; border: 0.5px solid"></canvas>')
+                            with gr.Row(variant="compact"):
+                                send3DImgToImg2Img = gr.Button(value="Send To Img2Img")
+                                send3DImgToInpaint = gr.Button(value="Send To Inpaint")
+                                send3DImgToExtras = gr.Button(value="Send To Extras")
 
-                with gr.Row():
-                    equirectangular_canvas = gr.HTML('<canvas id="panotools_equirectangular_canvas" width="2048" height="1024" style="width: 512px; height: 256px;margin: 0.25rem; border-radius: 0.25rem; border: 0.5px solid"></canvas>')
-                with gr.Row(variant="compact"):
-                    send2DImgToImg2Img = gr.Button(value="Send To Img2Img")
-                    send2DImgToInpaint = gr.Button(value="Send To Inpaint")
-                    send2DImgToExtras = gr.Button(value="Send To Extras")
-                    save2DImage = ToolButton('💾', tooltip=f"Save panorama image.")
-                with gr.Row(variant="compact"):
-                    cubemapFaceGallery = gr.Gallery(label="Cubemap Faces", show_label=True, elem_id="panorama_tools_cubemap_gallery", 
-                                                    columns=[4], rows=[2], object_fit="contain", height="auto")
-                with gr.Row(variant="compact"):
-                    generateCubemapFaces = gr.Button(value="Generate Cubemap Faces", elem_id="panorama_tools_gen_cubemap_button")
+                        with gr.Tab("2D Preview"):
+                            equirectangular_canvas = gr.HTML('<canvas id="panotools_equirectangular_canvas" width="2048" height="1024" style="width: 100%; height: 100%;margin: 0.25rem; border-radius: 0.25rem; border: 0.5px solid"></canvas>')
+                            with gr.Row(variant="compact"):
+                                send2DImgToImg2Img = gr.Button(value="Send To Img2Img")
+                                send2DImgToInpaint = gr.Button(value="Send To Inpaint")
+                                send2DImgToExtras = gr.Button(value="Send To Extras")
+                                save2DImage = ToolButton('💾', tooltip=f"Save panorama image.")
+                        with gr.Tab("Cubemap Generator"):
+                            cubemapFaceGallery = gr.Gallery(label="Cubemap Faces", show_label=True, elem_id="panorama_tools_cubemap_gallery", 
+                                                            columns=[4], rows=[2], object_fit="contain", height="auto")
+                            with gr.Row(variant="compact"):
+                                generateCubemapFaces = gr.Button(value="Generate Cubemap Faces", elem_id="panorama_tools_gen_cubemap_button")
+
+        with gr.Tab("Viewer"):
+            viewer_canvas = gr.HTML('<canvas id="panotools_viewer_canvas" width="1920" height="1080" style="width: 100%; height: 60%;margin: 0.25rem; border-radius: 0.25rem; border: 0.5px solid"></canvas>')
+        with gr.Tab("Sketcher"):
+            sketcher_canvas = gr.HTML('<canvas id="panotools_sketcher_canvas" width="1920" height="1080" style="width: 100%; height: 60%;margin: 0.25rem; border-radius: 0.25rem; border: 0.5px solid"></canvas>')
 
         #Updates the cubemap face gallery with 6 images passed as base64 dataURLs
         def update_cubemap_face_gallery(*args):
