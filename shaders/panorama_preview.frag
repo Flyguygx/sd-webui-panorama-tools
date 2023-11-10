@@ -34,10 +34,11 @@ vec3 rotateY(vec3 p, float a)
 
 void main(void) 
 {
-    vec2 uv = gl_FragCoord.xy / resolution;
+    vec2 aspect = resolution.xy/resolution.y;
+    vec2 uv = gl_FragCoord.xy / resolution.y;
 
     float focalLen = 1.0/tan(0.5*fov*PI/180.0);
-    vec3 dir = normalize(vec3(2.0*uv-1.0, focalLen));
+    vec3 dir = normalize(vec3(2.0*(uv-aspect/2.0), focalLen));
     dir = rotateX(dir, radians(-pitch));
     dir = rotateY(dir, radians(yaw));
 

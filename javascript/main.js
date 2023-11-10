@@ -40,6 +40,8 @@ panorama_tools = (function(){
 
     let mouseOverPreview3D = false; //Mouse is over 3D preview
     let mouseDragPreview3D = false; //Click and drag started in 3D preview
+    let mouseOverViewer3D = false; //Mouse is over 3D preview
+    let mouseDragViewer3D = false; //Click and drag started in 3D preview
 
     let shaderViews = {};
 
@@ -49,6 +51,7 @@ panorama_tools = (function(){
         
         shaderViews["preview_2d"] = await setupShaderView('#panotools_equirectangular_canvas','default.vert','equirectangular_preview.frag');
         shaderViews["preview_3d"] = await setupShaderView('#panotools_preview_canvas','default.vert','panorama_preview.frag');
+        shaderViews["viewer_3d"] = await setupShaderView('#panotools_viewer_canvas','default.vert','panorama_preview.frag');
 
         //Preview canvas events
         let preview3DCanvas = shaderViews["preview_3d"].canvas;
@@ -56,9 +59,15 @@ panorama_tools = (function(){
         preview3DCanvas.onmouseover = function(e){mouseOverPreview3D = true;}
         preview3DCanvas.onmouseout = function(e){mouseOverPreview3D = false;}
 
+        //Viewer canvas events
+        let viewer3DCanvas = shaderViews["viewer_3d"].canvas;
+        viewer3DCanvas.onmousedown = function(e){if(e.buttons&1 === 1){mouseDragViewer3D = true;}}
+        viewer3DCanvas.onmouseover = function(e){mouseOverViewer3D = true;}
+        viewer3DCanvas.onmouseout = function(e){mouseDragViewer3D = false;}
+
         //Tab events
         let tab = gradioApp().querySelector("#tab_panorama-tools");
-        tab.onmouseup = function(e){if(e.buttons&1 === 1){mouseDragPreview3D = false;} e.preventDefault();}
+        tab.onmouseup = function(e){if(e.buttons&1 === 1){mouseDragPreview3D = false; mouseDragViewer3D = false} e.preventDefault();}
         tab.onmousemove = function(e){tabMouseMove(e)};    
         tab.onwheel = function(e){tabMouseWheel(e)};
 
@@ -68,7 +77,9 @@ panorama_tools = (function(){
 
         //Setup render-to texture for 3D preview
         let previewTexture = createPlaceholderTexture(shaderViews["preview_3d"], "equirectangular", defaultColor);
+        let viewerTexture = createPlaceholderTexture(shaderViews["viewer_3d"], "equirectangular", defaultColor);
         shaderViews["preview_2d"].renderToTextures.push(previewTexture);
+        shaderViews["preview_2d"].renderToTextures.push(viewerTexture);
 
         loadPanoramaImage(defaultImgUrl)
 
@@ -79,23 +90,32 @@ panorama_tools = (function(){
     //Handles mouse rotation for 3d preview if drag started in 3d preview.
     let tabMouseMove = function(e)
     {
-        if(mouseDragPreview3D)
+        if(mouseDragPreview3D || mouseDragViewer3D)
         {
             if(e.buttons & 1 === 1) //Left/Primary mouse button clicked
             {
+                let shaderViewName = mouseDragPreview3D ? "preview_3d" :
+                                     mouseDragViewer3D  ? "viewer_3d" : "";
+
                 //Adjust mouse sensitivity with fov
-                let canvasWidth = shaderViews["preview_3d"].canvas.clientWidth;
-                let mouseSensitivity = shaderState.fov.value/canvasWidth;
+                let canvasWidth = shaderViews[shaderViewName].canvas.clientWidth;
+                let canvasHeight = shaderViews[shaderViewName].canvas.clientHeight;
+                let mouseSensitivityPitch = shaderState.fov.value/canvasHeight;
+
+                //Calculate horizontal FOV from vertical FOV.
+                let focalLen = 1.0 / Math.tan(0.5*shaderState.fov.value * (Math.PI/180.0));
+                let horizFov = 2.0 * Math.atan((canvasWidth/canvasHeight)/focalLen) * (180.0/Math.PI); 
+                let mouseSensitivityYaw = horizFov / canvasWidth;
                 
-                let yaw = shaderState.yaw.value - mouseSensitivity*e.movementX;
-                let pitch = shaderState.pitch.value - mouseSensitivity*-e.movementY;
+                let yaw = shaderState.yaw.value - mouseSensitivityYaw*e.movementX;
+                let pitch = shaderState.pitch.value - mouseSensitivityPitch*-e.movementY;
 
                 //Clamp pitch between +/-90deg, wrap yaw between +/-180deg
                 pitch = Math.max(-90,Math.min(90,pitch));
                 yaw = (((yaw+180)%360)+360)%360 - 180;
                 
-                setParameter('yaw', yaw.toFixed(angleResolution), 'preview_3d')
-                setParameter('pitch', pitch.toFixed(angleResolution), 'preview_3d')
+                setParameter('yaw', yaw.toFixed(angleResolution), shaderViewName, false);
+                setParameter('pitch', pitch.toFixed(angleResolution), shaderViewName);
                 updatePreviewSliders();
                 
                 //Avoid selecting text while rotating view
@@ -104,6 +124,7 @@ panorama_tools = (function(){
             else
             {
                 mouseDragPreview3D = false;
+                mouseDragViewer3D = false;
             }
         }
     }
@@ -111,14 +132,19 @@ panorama_tools = (function(){
     //Handles mouse zooming in 3d preview if the mouse is over it or while rotating the preview.
     let tabMouseWheel = function(e)
     {
-        if(mouseDragPreview3D || mouseOverPreview3D)
+        let zoomPreview3D = mouseDragPreview3D || mouseOverPreview3D;
+        let zoomViewer3D = mouseDragViewer3D || mouseOverViewer3D;
+        if(zoomPreview3D || zoomViewer3D)
         {
+            let shaderViewName = zoomPreview3D ? "preview_3d" :
+                                 zoomViewer3D  ? "viewer_3d" : "";
+
             let fov = parseFloat(shaderState.fov.value);
             
             fov += e.deltaY * zoomSensitivity;
             fov = Math.max(0,Math.min(180,fov));
 
-            setParameter('fov', fov.toFixed(fovResolution), 'preview_3d')
+            setParameter('fov', fov.toFixed(fovResolution), shaderViewName);
             updatePreviewSliders()
 
             //Avoid scrolling while zooming view
@@ -464,7 +490,6 @@ panorama_tools = (function(){
     //Laod panorama image to both 2d/3d previews, add to undo buffer.
     let loadPanoramaImage = function(url)
     {
-        loadTexture('preview_3d', 'equirectangular', url); 
         loadTexture('preview_2d', 'equirectangular', url);
 
         if(panoramaInputUndoBuffer.length >= maxUndoSteps)
