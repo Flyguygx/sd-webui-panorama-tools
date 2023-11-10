@@ -631,6 +631,21 @@ panorama_tools = (function(){
         return faces;
     }
 
+    let setPreviewPitch = function(v){setParameter('pitch', v, 'preview_3d');}
+    let setPreviewYaw = function(v){setParameter('yaw', v, 'preview_3d');}
+    let setPreviewFov = function(v){setParameter('fov', v, 'preview_3d');}
+    
+    let setReorientPitch = function(v){setParameter('reorientPitch', v);}
+    let setReorientYaw = function(v){setParameter('reorientYaw', v);}
+    let setPoleOffsetBottom = function(v){setParameter('offsetBottom', v);}
+    let setPoleOffsetTop = function(v){setParameter('offsetTop', v);}
+
+    let setInpaintEnable = function(v){setParameter('maskEnable', (v ? 1.0:0.0));}
+    let setInpaintPitch = function(v){setParameter('maskPitch', v);}
+    let setInpaintYaw = function(v){setParameter('maskYaw', v);}
+    let setInpaintFov = function(v){setParameter('maskFov', v);}
+    let setInpaintMaskBlur = function(v){setParameter('maskBlend', v);}
+
     //Exported functions to be called from Python
     return {
         initialize,
@@ -650,6 +665,21 @@ panorama_tools = (function(){
         copyPreviewSettingsToInpaint,
         getSelectedImageOnTab,
         getShaderViewImage,
-        renderCubemapFaces
+        renderCubemapFaces,
+
+        setPreviewPitch,
+        setPreviewYaw,
+        setPreviewFov,
+
+        setReorientPitch,
+        setReorientYaw,
+        setPoleOffsetBottom,
+        setPoleOffsetTop,
+
+        setInpaintEnable,
+        setInpaintPitch,
+        setInpaintYaw,
+        setInpaintFov,
+        setInpaintMaskBlur
     };
 })();

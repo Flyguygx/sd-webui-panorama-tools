@@ -227,20 +227,20 @@ def on_ui_tabs():
                                    _js="() => {return panorama_tools.renderCubemapFaces()}")
         
         #Slider change events
-        previewPitch.change(None, [previewPitch], None, _js="(v) => {panorama_tools.setParameter('pitch', v, 'preview_3d')}")
-        previewYaw.change(None, [previewYaw], None, _js="(v) => {panorama_tools.setParameter('yaw', v, 'preview_3d')}")
-        previewFov.change(None, [previewFov], None, _js="(v) => {panorama_tools.setParameter('fov', v, 'preview_3d')}")
+        previewPitch.change(None, [previewPitch], None, _js="(v) => {panorama_tools.setPreviewPitch(v)}")
+        previewYaw.change(None, [previewYaw], None, _js="(v) => {panorama_tools.setPreviewYaw(v)}")
+        previewFov.change(None, [previewFov], None, _js="(v) => {panorama_tools.setPreviewFov(v)}")
 
-        reorientPitch.change(None, [reorientPitch], None, _js="(v) => {panorama_tools.setParameter('reorientPitch', v)}")
-        reorientYaw.change(None, [reorientYaw], None, _js="(v) => {panorama_tools.setParameter('reorientYaw', v)}")
-        offsetBottom.change(None, [offsetBottom], None, _js="(v) => {panorama_tools.setParameter('offsetBottom', v)}")
-        offsetTop.change(None, [offsetTop], None, _js="(v) => {panorama_tools.setParameter('offsetTop', v)}")
+        reorientPitch.change(None, [reorientPitch], None, _js="(v) => {panorama_tools.setReorientPitch(v)}")
+        reorientYaw.change(None, [reorientYaw], None, _js="(v) => {panorama_tools.setReorientYaw(v)}")
+        offsetBottom.change(None, [offsetBottom], None, _js="(v) => {panorama_tools.setPoleOffsetBottom(v)}")
+        offsetTop.change(None, [offsetTop], None, _js="(v) => {panorama_tools.setPoleOffsetTop(v)}")
 
-        inpaintEnable.change(None, [inpaintEnable], None, _js="(v) => {panorama_tools.setParameter('maskEnable', (v ? 1.0:0.0))}")
-        inpaintPitch.change(None, [inpaintPitch], None, _js="(v) => {panorama_tools.setParameter('maskPitch', v)}")
-        inpaintYaw.change(None, [inpaintYaw], None, _js="(v) => {panorama_tools.setParameter('maskYaw', v)}")
-        inpaintFov.change(None, [inpaintFov], None, _js="(v) => {panorama_tools.setParameter('maskFov', v)}")
-        inpaintMaskBlur.change(None, [inpaintMaskBlur], None, _js="(v) => {panorama_tools.setParameter('maskBlend', v)}")
+        inpaintEnable.change(None, [inpaintEnable], None, _js="(v) => {panorama_tools.setInpaintEnable(v)}")
+        inpaintPitch.change(None, [inpaintPitch], None, _js="(v) => {panorama_tools.setInpaintPitch(v)}")
+        inpaintYaw.change(None, [inpaintYaw], None, _js="(v) => {panorama_tools.setInpaintYaw(v)}")
+        inpaintFov.change(None, [inpaintFov], None, _js="(v) => {panorama_tools.setInpaintFov(v)}")
+        inpaintMaskBlur.change(None, [inpaintMaskBlur], None, _js="(v) => {panorama_tools.setInpaintMaskBlur(v)}")
 
         previewWidth.change(None, [previewWidth, previewHeight], None, _js="(w,h) => {panorama_tools.updateResolution('preview_3d', w, h)}")
         previewHeight.change(None, [previewWidth, previewHeight], None, _js="(w,h) => {panorama_tools.updateResolution('preview_3d', w, h)}")
