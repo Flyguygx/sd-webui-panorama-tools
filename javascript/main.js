@@ -48,10 +48,15 @@ panorama_tools = (function(){
     let initialize = async function(baseUrl, defaultImgUrl)
     {
         extensionBaseUrl = baseUrl;
-        
-        shaderViews["preview_2d"] = await setupShaderView('#panotools_equirectangular_canvas','default.vert','equirectangular_preview.frag');
-        shaderViews["preview_3d"] = await setupShaderView('#panotools_preview_canvas','default.vert','panorama_preview.frag');
-        shaderViews["viewer_3d"] = await setupShaderView('#panotools_viewer_canvas','default.vert','panorama_preview.frag');
+
+        let vertShaderPath =      extensionBaseUrl + "/shaders/default.vert";
+        let preview2DShaderPath = extensionBaseUrl + "/shaders/equirectangular_preview.frag";
+        let preview3DShaderPath = extensionBaseUrl + "/shaders/panorama_preview.frag";
+        let viewerShaderPath =    extensionBaseUrl + "/shaders/panorama_preview.frag";
+
+        shaderViews["preview_2d"] = await ShaderView('#panotools_equirectangular_canvas',vertShaderPath, preview2DShaderPath);
+        shaderViews["preview_3d"] = await ShaderView('#panotools_preview_canvas', vertShaderPath, preview3DShaderPath);
+        shaderViews["viewer_3d"] = await ShaderView('#panotools_viewer_canvas', vertShaderPath, viewerShaderPath);
 
         //Preview canvas events
         let preview3DCanvas = shaderViews["preview_3d"].canvas;
@@ -72,14 +77,14 @@ panorama_tools = (function(){
         tab.onwheel = function(e){tabMouseWheel(e)};
 
         //Create place holder textures for shader views
-        createPlaceholderTexture(shaderViews["preview_2d"], "equirectangular", defaultColor);
-        createPlaceholderTexture(shaderViews["preview_2d"], "inpainting", defaultColor);
+        shaderViews["preview_2d"].addPlaceholderTexture("equirectangular", defaultColor);
+        shaderViews["preview_2d"].addPlaceholderTexture("inpainting", defaultColor);
 
         //Setup render-to texture for 3D preview
-        let previewTexture = createPlaceholderTexture(shaderViews["preview_3d"], "equirectangular", defaultColor);
-        let viewerTexture = createPlaceholderTexture(shaderViews["viewer_3d"], "equirectangular", defaultColor);
-        shaderViews["preview_2d"].renderToTextures.push(previewTexture);
-        shaderViews["preview_2d"].renderToTextures.push(viewerTexture);
+        let previewTexture = shaderViews["preview_3d"].addPlaceholderTexture("equirectangular", defaultColor);
+        let viewerTexture = shaderViews["viewer_3d"].addPlaceholderTexture("equirectangular", defaultColor);
+        shaderViews["preview_2d"].addRenderToTexture(previewTexture);
+        shaderViews["preview_2d"].addRenderToTexture(viewerTexture);
 
         loadPanoramaImage(defaultImgUrl)
 
@@ -159,64 +164,16 @@ panorama_tools = (function(){
         {
             for (const [viewName, shaderView] of Object.entries(shaderViews)) 
             {
-                updateUniforms(shaderView, shaderState);
-                drawShaderView(shaderView);
+                updateShaderState(shaderView, shaderState);
+                //drawShaderView(shaderView);
+                shaderView.draw()
             }
         }
         else
         {
-            updateUniforms(shaderViews[name], shaderState);
-            drawShaderView(shaderViews[name]);
-        }
-    }
-
-    //Creates a 1x1 texture with the specified color.
-    let createPlaceholderTexture = function(shaderView, name, color = [0,0,0,255])
-    {
-        let gl = shaderView.glContext;
-        let texture = gl.createTexture();
-
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(color));
-
-        return shaderView.textures[name] = {
-            glContext : gl,
-            glTexture : texture
-        };
-    }
-
-    //Load a texture from a URL
-    let loadTexture = function(shaderViewName, name, url)
-    {
-        let shaderView = shaderViews[shaderViewName];
-        let gl = shaderView.glContext;
-        let texture = shaderView.textures[name].glTexture;
-
-        if(url)
-        {
-            let image = new Image();
-            image.src = url;
-            image.onload = function() 
-            {
-                gl.bindTexture(gl.TEXTURE_2D, texture);
-                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, image);
-                gl.generateMipmap(gl.TEXTURE_2D);
-
-                redrawView("");
-            };
-        }
-        else //Default to 1x1 texture with default color is url is blank/null/etc.
-        {
-            gl.bindTexture(gl.TEXTURE_2D, texture);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(defaultColor));
-            redrawView("");
+            updateShaderState(shaderViews[name], shaderState);
+            //drawShaderView(shaderViews[name]);
+            shaderViews[name].draw();
         }
     }
 
@@ -232,160 +189,19 @@ panorama_tools = (function(){
 
     //Update a list of shader uniforms for a given shader view
     //list format: name:{type:"float",value:1234}
-    let updateUniforms = function(shaderView, shaderState)
+    let updateShaderState = function(shaderView, shaderState)
     {
         for (const [name, typeValue] of Object.entries(shaderState)) 
         {
-            let test = setUniform(shaderView, typeValue.type, name, typeValue.value);
-        }
-    }
-
-    //Set the value of a named uniform of a given type on a shader view.
-    let setUniform = function(shaderView, type, name, value)
-    {
-        let gl = shaderView.glContext;
-        let loc = gl.getUniformLocation(shaderView.shaderProgram, name);
-        if(loc === null)
-        {
-            return false;
-        }
-
-        let typeMapping = 
-        {
-            float: "uniform1f",
-            vec2: "uniform2fv",
-            vec3: "uniform3fv",
-            vec4: "uniform4fv",
-            texture: "uniform1i"
-        }
-
-        if(!Object.hasOwn(typeMapping, type))
-        {
-            return false;
-        }
-        
-        gl.useProgram(shaderView.shaderProgram);
-        gl[typeMapping[type]](loc, value);
-        
-        return true;
-    }
-
-    //Load a named glsl shader into the given GL context
-    let loadShader = async function(gl, name, type)
-    {
-        let shaderUrl = extensionBaseUrl+"/shaders/"+name
-        let shaderSource = await (await fetch(shaderUrl)).text();
-        let shader = gl.createShader(type);
-        gl.shaderSource(shader, shaderSource);
-        gl.compileShader(shader);
-        let compiled = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
-        let log = gl.getShaderInfoLog(shader);
-
-        return {
-            shader: shader,
-            compiled: compiled,
-            log: log
-        }
-    }
-
-    //Sets up a basic full-screen triangle in webgl2 with vert/frag shaders.
-    let setupShaderView = async function(canvasId, vertShaderName, fragShaderName)
-    {
-        let canvas = gradioApp().querySelector(canvasId);
-        gl = canvas.getContext('webgl2', {preserveDrawingBuffer:true});
-
-        //Setup triangle
-        let vertices = [
-            -1, -1, 0,
-            3, -1, 0,
-            -1,  3, 0, 
-        ];
-        indices = [0,1,2];
-
-        let vertex_buffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-        let Index_Buffer = gl.createBuffer();
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, Index_Buffer);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-
-        //Load shaders
-        let vertShader = await loadShader(gl, vertShaderName, gl.VERTEX_SHADER);
-        if(!vertShader.compiled)
-        {
-            console.log("Vertex shader failed to compile. Info:\n"+vertShader.log);
-        }
-        let fragShader = await loadShader(gl, fragShaderName, gl.FRAGMENT_SHADER);
-        if(!fragShader.compiled)
-        {
-            console.log("Fragment shader failed to compile. Info:\n"+fragShader.log);
-        }
-
-        let shaderProgram = gl.createProgram();
-        gl.attachShader(shaderProgram, vertShader.shader);
-        gl.attachShader(shaderProgram, fragShader.shader);
-        gl.linkProgram(shaderProgram);
-        
-        return {
-            canvas: canvas,
-            glContext: gl,
-            shaderProgram: shaderProgram,
-            vertexBuffer: vertex_buffer,
-            indexBuffer: Index_Buffer,
-            textures: {},
-            renderToTextures: []
-        }
-    }
-
-    //Draws the given shader view and updates any assigned render-to textures.
-    let drawShaderView = function(shaderView)
-    {
-        let gl = shaderView.glContext;
-        gl.useProgram(shaderView.shaderProgram);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, shaderView.vertexBuffer);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, shaderView.indexBuffer);
-        let coord = gl.getAttribLocation(shaderView.shaderProgram, "coordinates");
-        gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(coord);
-
-        setUniform(shaderView, "vec2", "resolution", [shaderView.canvas.width, shaderView.canvas.height]);
-
-        gl.viewport(0,0,shaderView.canvas.width, shaderView.canvas.height);
-
-        //Bind assigned textures
-        let unit = 0;
-        for (const [name, texture] of Object.entries(shaderView.textures)) 
-        {    
-            let texLoc = gl.getUniformLocation(shaderView.shaderProgram, name);
-            gl.uniform1i(texLoc, unit);  
-            gl.activeTexture(gl.TEXTURE0+unit);
-            gl.bindTexture(gl.TEXTURE_2D, texture.glTexture);
-            unit++;
-        }
-
-        gl.drawElements(gl.TRIANGLES, 3, gl.UNSIGNED_SHORT,0);
-
-        //Update assgned render-to textures.
-        for(const renderToTexture of shaderView.renderToTextures)
-        {
-            let dstGLContext = renderToTexture.glContext;
-            let texture = renderToTexture.glTexture;
-        
-            dstGLContext.bindTexture(gl.TEXTURE_2D, texture);
-            dstGLContext.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, gl.canvas);
-            dstGLContext.generateMipmap(gl.TEXTURE_2D);
+            let test = shaderView.setVariable(name, typeValue.value);
         }
     }
 
     //Update the resolution of a named shader view, optionally redraw all views (for dependent render-to textures)
     let updateResolution = function(name,width,height,redrawAll=false)
     {
-        shaderViews[name].canvas.width = width;
-        shaderViews[name].canvas.height = height;
+        shaderViews[name].setResolution(width, height);
+
         if(redrawAll)
         {
             redrawView("");
@@ -431,7 +247,7 @@ panorama_tools = (function(){
     //Return a DataURL image of the named shader view.
     let getShaderViewImage = function(shaderViewName)
     {
-        return shaderViews[shaderViewName].canvas.toDataURL();
+        return shaderViews[shaderViewName].getImageDataURL();//.canvas.toDataURL();
     }
 
     //Returns a DataURL image of the named shader view and switches to the specified tab.
@@ -442,7 +258,7 @@ panorama_tools = (function(){
         if(tab === "inpaint"){ switch_to_inpaint() }
         if(tab === "extras"){ switch_to_extras() } 
 
-        return shaderViews[shaderViewName].canvas.toDataURL();
+        return shaderViews[shaderViewName].getImageDataURL();//.canvas.toDataURL();
     }
 
     //Set the value of a Gradio slider.
@@ -490,7 +306,10 @@ panorama_tools = (function(){
     //Laod panorama image to both 2d/3d previews, add to undo buffer.
     let loadPanoramaImage = function(url)
     {
-        loadTexture('preview_2d', 'equirectangular', url);
+        //loadTexture('preview_2d', 'equirectangular', url);
+        shaderViews['preview_2d'].loadTexture('equirectangular', url, function(loaded){
+            redrawView("");
+        });
 
         if(panoramaInputUndoBuffer.length >= maxUndoSteps)
         {
@@ -518,7 +337,10 @@ panorama_tools = (function(){
     //Laod inpainting image to both 2d/3d previews, add to undo buffer.
     let loadInpaintImage = function(url)
     {
-        loadTexture('preview_2d', 'inpainting', url)
+        //loadTexture('preview_2d', 'inpainting', url)
+        shaderViews['preview_2d'].loadTexture('inpainting', url, function(loaded){
+            redrawView("");
+        });
 
         if(inpaintInputUndoBuffer.length >= maxUndoSteps)
         {
@@ -545,8 +367,8 @@ panorama_tools = (function(){
 
     //Download an image og the specified shader view.
     let downloadShaderViewImage = function(shaderViewName, filename = 'untitled.png') {
-        let canvas = shaderViews[shaderViewName].canvas;
-        let data = canvas.toDataURL("image/png", 1.0);
+        //let canvas = shaderViews[shaderViewName].canvas;
+        let data = shaderViews[shaderViewName].getImageDataURL();//canvas.toDataURL("image/png", 1.0);
         let a = document.createElement('a');
         a.href = data;
         a.download = filename;
@@ -649,23 +471,27 @@ panorama_tools = (function(){
     //Exported functions to be called from Python
     return {
         initialize,
+
         loadPanoramaImage,
         loadInpaintImage,
         revertPanoramaImage,
         revertInpaintImage,
+        getSelectedImageOnTab,
+        getShaderViewImage,
+        renderCubemapFaces,
+
         setPredefinedView,
         viewResolutionFromInput,
         viewResolutionFromInpaint,
+
         sendShaderViewTo,
         downloadShaderViewImage,
+
         setParameter,
         updateResolution,
         savePreviewSettings,
         copyLastPreviewSettingsToInpaint,
         copyPreviewSettingsToInpaint,
-        getSelectedImageOnTab,
-        getShaderViewImage,
-        renderCubemapFaces,
 
         setPreviewPitch,
         setPreviewYaw,
