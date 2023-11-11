@@ -41,7 +41,7 @@ def on_ui_tabs():
     #UI layout
     with gr.Blocks(analytics_enabled=False) as panorama_tools_ui:
         dummyComponent = gr.Label(visible=False)
-        with gr.Tab("Editor"):
+        with gr.Tab(label="Editor", elem_id="panotools_editor_tab"):
             with gr.Row():
                 with gr.Column():
                     with gr.Row():
@@ -137,9 +137,9 @@ def on_ui_tabs():
                             with gr.Row(variant="compact"):
                                 generateCubemapFaces = gr.Button(value="Generate Cubemap Faces", elem_id="panorama_tools_gen_cubemap_button")
 
-        with gr.Tab("Viewer"):
+        with gr.Tab(label="Viewer", elem_id="panotools_viewer_tab"):
             viewer_canvas = gr.HTML('<canvas id="panotools_viewer_canvas" width="1920" height="1080" style="width: 100%; height: 60%;margin: 0.25rem; border-radius: 0.25rem; border: 0.5px solid"></canvas>')
-        with gr.Tab("Sketcher"):
+        with gr.Tab(label="Sketcher", elem_id="panotools_sketcher_tab"):
             sketcher_canvas = gr.HTML('<canvas id="panotools_sketcher_canvas" width="1920" height="1080" style="width: 100%; height: 60%;margin: 0.25rem; border-radius: 0.25rem; border: 0.5px solid"></canvas>')
 
         #Updates the cubemap face gallery with 6 images passed as base64 dataURLs
@@ -225,7 +225,7 @@ def on_ui_tabs():
                                    inputs=[dummyComponent,dummyComponent,dummyComponent,dummyComponent,dummyComponent,dummyComponent],
                                    outputs=[cubemapFaceGallery],show_progress=True,
                                    _js="() => {return panorama_tools.renderCubemapFaces()}")
-        
+
         #Slider change events
         previewPitch.change(None, [previewPitch], None, _js="(v) => {panorama_tools.setPreviewPitch(v)}")
         previewYaw.change(None, [previewYaw], None, _js="(v) => {panorama_tools.setPreviewYaw(v)}")

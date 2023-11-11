@@ -18,6 +18,8 @@ panorama_tools = (function(){
     }
 
     //Variables
+    let mainTab = null;
+    let extensionTabs = {};
     let extensionBaseUrl = "";
     let panoramaInputUndoBuffer = [];
     let inpaintInputUndoBuffer = [];
@@ -58,23 +60,28 @@ panorama_tools = (function(){
         shaderViews["preview_3d"] = await ShaderView('#panotools_preview_canvas', vertShaderPath, preview3DShaderPath);
         shaderViews["viewer_3d"] = await ShaderView('#panotools_viewer_canvas', vertShaderPath, viewerShaderPath);
 
+        //Tab elements
+        mainTab = gradioApp().querySelector("#tab_panorama-tools");
+        extensionTabs.editor = mainTab.querySelector("#panotools_editor_tab");
+        extensionTabs.viewer = mainTab.querySelector("#panotools_viewer_tab");
+        extensionTabs.sketcher = mainTab.querySelector("#panotools_sketcher_tab");
+
         //Preview canvas events
         let preview3DCanvas = shaderViews["preview_3d"].canvas;
-        preview3DCanvas.onmousedown = function(e){if(e.buttons&1 === 1){mouseDragPreview3D = true;}}
-        preview3DCanvas.onmouseover = function(e){mouseOverPreview3D = true;}
+        preview3DCanvas.onmousedown = function(e){if(e.buttons&1 === 1){mouseDragPreview3D = isTabVisible("editor");}}
+        preview3DCanvas.onmouseover = function(e){mouseOverPreview3D = isTabVisible("editor");}
         preview3DCanvas.onmouseout = function(e){mouseOverPreview3D = false;}
 
         //Viewer canvas events
         let viewer3DCanvas = shaderViews["viewer_3d"].canvas;
-        viewer3DCanvas.onmousedown = function(e){if(e.buttons&1 === 1){mouseDragViewer3D = true;}}
-        viewer3DCanvas.onmouseover = function(e){mouseOverViewer3D = true;}
+        viewer3DCanvas.onmousedown = function(e){if(e.buttons&1 === 1){mouseDragViewer3D = isTabVisible("viewer");}}
+        viewer3DCanvas.onmouseover = function(e){mouseOverViewer3D = isTabVisible("viewer");}
         viewer3DCanvas.onmouseout = function(e){mouseDragViewer3D = false;}
 
         //Tab events
-        let tab = gradioApp().querySelector("#tab_panorama-tools");
-        tab.onmouseup = function(e){if(e.buttons&1 === 1){mouseDragPreview3D = false; mouseDragViewer3D = false} e.preventDefault();}
-        tab.onmousemove = function(e){tabMouseMove(e)};    
-        tab.onwheel = function(e){tabMouseWheel(e)};
+        mainTab.onmouseup = function(e){if(e.buttons&1 === 1){mouseDragPreview3D = false; mouseDragViewer3D = false} e.preventDefault();}
+        mainTab.onmousemove = function(e){tabMouseMove(e)};    
+        mainTab.onwheel = function(e){tabMouseWheel(e)};
 
         //Create place holder textures for shader views
         shaderViews["preview_2d"].addPlaceholderTexture("equirectangular", defaultColor);
@@ -259,6 +266,11 @@ panorama_tools = (function(){
         if(tab === "extras"){ switch_to_extras() } 
 
         return shaderViews[shaderViewName].getImageDataURL();//.canvas.toDataURL();
+    }
+
+    let isTabVisible = function(name)
+    {
+        return extensionTabs[name].style.display !== 'none';
     }
 
     //Set the value of a Gradio slider.
