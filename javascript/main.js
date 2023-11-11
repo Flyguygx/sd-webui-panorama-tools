@@ -144,8 +144,8 @@ panorama_tools = (function(){
     //Handles mouse zooming in 3d preview if the mouse is over it or while rotating the preview.
     let tabMouseWheel = function(e)
     {
-        let zoomPreview3D = mouseDragPreview3D || mouseOverPreview3D;
-        let zoomViewer3D = mouseDragViewer3D || mouseOverViewer3D;
+        let zoomPreview3D = (mouseDragPreview3D || mouseOverPreview3D) && isTabVisible("editor");
+        let zoomViewer3D = (mouseDragViewer3D || mouseOverViewer3D) && isTabVisible("viewer");
         if(zoomPreview3D || zoomViewer3D)
         {
             let shaderViewName = zoomPreview3D ? "preview_3d" :
