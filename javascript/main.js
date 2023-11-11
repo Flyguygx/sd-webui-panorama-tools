@@ -24,18 +24,18 @@ panorama_tools = (function(){
     let lastPreviewSettings = {yaw: 0, pitch: 0, fov: defaultFov};
     let shaderState = //Shader state variables
     {
-        yaw:           {type: "float", value:  0.00},
-        pitch:         {type: "float", value:  0.00},
-        fov:           {type: "float", value: 90.00},
-        maskYaw:       {type: "float", value:  0.00},
-        maskPitch:     {type: "float", value:  0.00},
-        maskFov :      {type: "float", value: 90.00},
-        maskBlend:     {type: "float", value:  0.01},
-        maskEnable:    {type: "float", value:  0.00},
-        reorientYaw:   {type: "float", value:  0.00},
-        reorientPitch: {type: "float", value:  0.00},
-        offsetTop:     {type: "float", value:  0.00},
-        offsetBottom:  {type: "float", value:  0.00}
+        yaw:           0.00,
+        pitch:         0.00,
+        fov:          90.00,
+        maskYaw:       0.00,
+        maskPitch:     0.00,
+        maskFov :     90.00,
+        maskBlend:     0.01,
+        maskEnable:    0.00,
+        reorientYaw:   0.00,
+        reorientPitch: 0.00,
+        offsetTop:     0.00,
+        offsetBottom:  0.00
     }
 
     let mouseOverPreview3D = false; //Mouse is over 3D preview
@@ -105,15 +105,15 @@ panorama_tools = (function(){
                 //Adjust mouse sensitivity with fov
                 let canvasWidth = shaderViews[shaderViewName].canvas.clientWidth;
                 let canvasHeight = shaderViews[shaderViewName].canvas.clientHeight;
-                let mouseSensitivityPitch = shaderState.fov.value/canvasHeight;
+                let mouseSensitivityPitch = shaderState.fov/canvasHeight;
 
                 //Calculate horizontal FOV from vertical FOV.
-                let focalLen = 1.0 / Math.tan(0.5*shaderState.fov.value * (Math.PI/180.0));
+                let focalLen = 1.0 / Math.tan(0.5*shaderState.fov * (Math.PI/180.0));
                 let horizFov = 2.0 * Math.atan((canvasWidth/canvasHeight)/focalLen) * (180.0/Math.PI); 
                 let mouseSensitivityYaw = horizFov / canvasWidth;
                 
-                let yaw = shaderState.yaw.value - mouseSensitivityYaw*e.movementX;
-                let pitch = shaderState.pitch.value - mouseSensitivityPitch*-e.movementY;
+                let yaw = shaderState.yaw - mouseSensitivityYaw*e.movementX;
+                let pitch = shaderState.pitch - mouseSensitivityPitch*-e.movementY;
 
                 //Clamp pitch between +/-90deg, wrap yaw between +/-180deg
                 pitch = Math.max(-90,Math.min(90,pitch));
@@ -144,7 +144,7 @@ panorama_tools = (function(){
             let shaderViewName = zoomPreview3D ? "preview_3d" :
                                  zoomViewer3D  ? "viewer_3d" : "";
 
-            let fov = parseFloat(shaderState.fov.value);
+            let fov = parseFloat(shaderState.fov);
             
             fov += e.deltaY * zoomSensitivity;
             fov = Math.max(0,Math.min(180,fov));
@@ -180,7 +180,7 @@ panorama_tools = (function(){
     //Set a named shader state parameter and re-draw all or a named shader view.
     let setParameter = function(name, value, shaderViewName = "", redraw = true)
     {
-        shaderState[name].value = value;
+        shaderState[name] = value;
         if(redraw)
         {
             redrawView(shaderViewName);
@@ -191,9 +191,9 @@ panorama_tools = (function(){
     //list format: name:{type:"float",value:1234}
     let updateShaderState = function(shaderView, shaderState)
     {
-        for (const [name, typeValue] of Object.entries(shaderState)) 
+        for (const [name, value] of Object.entries(shaderState)) 
         {
-            let test = shaderView.setVariable(name, typeValue.value);
+            let test = shaderView.setVariable(name, value);
         }
     }
 
@@ -284,9 +284,9 @@ panorama_tools = (function(){
     let updatePreviewSliders = function()
     {
         let gApp = gradioApp();
-        setGradioSliderValue(gApp, "panorama_tools_preview_pitch", shaderState.pitch.value)
-        setGradioSliderValue(gApp, "panorama_tools_preview_yaw", shaderState.yaw.value)
-        setGradioSliderValue(gApp, "panorama_tools_preview_fov", shaderState.fov.value)
+        setGradioSliderValue(gApp, "panorama_tools_preview_pitch", shaderState.pitch)
+        setGradioSliderValue(gApp, "panorama_tools_preview_yaw", shaderState.yaw)
+        setGradioSliderValue(gApp, "panorama_tools_preview_fov", shaderState.fov)
     }
 
     //Copy the preview slider values to the inpainting sliders to align inpainting with current view.
@@ -294,13 +294,13 @@ panorama_tools = (function(){
     {
         let gApp = gradioApp();
 
-        setGradioSliderValue(gApp, "panorama_tools_inpaint_pitch", shaderState.pitch.value)
-        setGradioSliderValue(gApp, "panorama_tools_inpaint_yaw", shaderState.yaw.value)
-        setGradioSliderValue(gApp, "panorama_tools_inpaint_fov", shaderState.fov.value)
+        setGradioSliderValue(gApp, "panorama_tools_inpaint_pitch", shaderState.pitch)
+        setGradioSliderValue(gApp, "panorama_tools_inpaint_yaw", shaderState.yaw)
+        setGradioSliderValue(gApp, "panorama_tools_inpaint_fov", shaderState.fov)
 
-        setParameter('maskPitch', shaderState.pitch.value)
-        setParameter('maskYaw', shaderState.yaw.value)
-        setParameter('maskFov', shaderState.fov.value)
+        setParameter('maskPitch', shaderState.pitch)
+        setParameter('maskYaw', shaderState.yaw)
+        setParameter('maskFov', shaderState.fov)
     }
 
     //Laod panorama image to both 2d/3d previews, add to undo buffer.
@@ -393,9 +393,9 @@ panorama_tools = (function(){
     //Save the preview settings
     let savePreviewSettings = function()
     {
-        lastPreviewSettings.yaw = shaderState.yaw.value;
-        lastPreviewSettings.pitch = shaderState.pitch.value;
-        lastPreviewSettings.fov = shaderState.fov.value;
+        lastPreviewSettings.yaw = shaderState.yaw;
+        lastPreviewSettings.pitch = shaderState.pitch;
+        lastPreviewSettings.fov = shaderState.fov;
     }
 
     //Send the last saved preview settings to inpaint
@@ -418,9 +418,9 @@ panorama_tools = (function(){
     {
         let shaderViewName = "preview_3d";
         let canvas = shaderViews[shaderViewName].canvas;
-        let curPitch = shaderState.pitch.value;
-        let curYaw = shaderState.yaw.value;
-        let curFov = shaderState.fov.value;
+        let curPitch = shaderState.pitch;
+        let curYaw = shaderState.yaw;
+        let curFov = shaderState.fov;
         let faces = [];
 
         let faceAngles = [
