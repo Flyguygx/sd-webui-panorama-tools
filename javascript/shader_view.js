@@ -137,6 +137,8 @@ ShaderView = async function(canvasId, vertShaderName, fragShaderName)
             dstGLContext.bindTexture(gl.TEXTURE_2D, texture);
             dstGLContext.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, gl.canvas);
             dstGLContext.generateMipmap(gl.TEXTURE_2D);
+
+            renderToTexture.callback();
         }
     }
 
@@ -217,9 +219,10 @@ ShaderView = async function(canvasId, vertShaderName, fragShaderName)
         return state.textures[name];
     }
 
-    let addRenderToTexture = function(texture)
+    let addRenderToTexture = function(texture, callback = function(){})
     {
-        state.renderToTextures.push(texture)
+        texture.callback = callback;
+        state.renderToTextures.push(texture);
     }
 
     state = await initializeState(canvasId, vertShaderName, fragShaderName);

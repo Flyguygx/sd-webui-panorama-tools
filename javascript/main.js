@@ -54,11 +54,11 @@ panorama_tools = (function(){
         let vertShaderPath =      extensionBaseUrl + "/shaders/default.vert";
         let preview2DShaderPath = extensionBaseUrl + "/shaders/equirectangular_preview.frag";
         let preview3DShaderPath = extensionBaseUrl + "/shaders/panorama_preview.frag";
-        let viewerShaderPath =    extensionBaseUrl + "/shaders/panorama_preview.frag";
 
         shaderViews["preview_2d"] = await ShaderView('#panotools_equirectangular_canvas',vertShaderPath, preview2DShaderPath);
         shaderViews["preview_3d"] = await ShaderView('#panotools_preview_canvas', vertShaderPath, preview3DShaderPath);
-        shaderViews["viewer_3d"] = await ShaderView('#panotools_viewer_canvas', vertShaderPath, viewerShaderPath);
+
+        let panoramaViewer = await PanoramaViewer(extensionBaseUrl, "#panotools_viewer_canvas");
 
         //Tab elements
         mainTab = gradioApp().querySelector("#tab_panorama-tools");
@@ -72,12 +72,6 @@ panorama_tools = (function(){
         preview3DCanvas.onmouseover = function(e){mouseOverPreview3D = isTabVisible("editor");}
         preview3DCanvas.onmouseout = function(e){mouseOverPreview3D = false;}
 
-        //Viewer canvas events
-        let viewer3DCanvas = shaderViews["viewer_3d"].canvas;
-        viewer3DCanvas.onmousedown = function(e){if(e.buttons&1 === 1){mouseDragViewer3D = isTabVisible("viewer");}}
-        viewer3DCanvas.onmouseover = function(e){mouseOverViewer3D = isTabVisible("viewer");}
-        viewer3DCanvas.onmouseout = function(e){mouseDragViewer3D = false;}
-
         //Tab events
         mainTab.onmouseup = function(e){if(e.buttons&1 === 1){mouseDragPreview3D = false; mouseDragViewer3D = false} e.preventDefault();}
         mainTab.onmousemove = function(e){tabMouseMove(e)};    
@@ -89,9 +83,11 @@ panorama_tools = (function(){
 
         //Setup render-to texture for 3D preview
         let previewTexture = shaderViews["preview_3d"].addPlaceholderTexture("equirectangular", defaultColor);
-        let viewerTexture = shaderViews["viewer_3d"].addPlaceholderTexture("equirectangular", defaultColor);
         shaderViews["preview_2d"].addRenderToTexture(previewTexture);
-        shaderViews["preview_2d"].addRenderToTexture(viewerTexture);
+
+        shaderViews["preview_2d"].addRenderToTexture(panoramaViewer.getTexture(), function(){
+            panoramaViewer.draw();
+        });
 
         loadPanoramaImage(defaultImgUrl)
 
@@ -102,12 +98,11 @@ panorama_tools = (function(){
     //Handles mouse rotation for 3d preview if drag started in 3d preview.
     let tabMouseMove = function(e)
     {
-        if(mouseDragPreview3D || mouseDragViewer3D)
+        if(mouseDragPreview3D)
         {
             if(e.buttons & 1 === 1) //Left/Primary mouse button clicked
             {
-                let shaderViewName = mouseDragPreview3D ? "preview_3d" :
-                                     mouseDragViewer3D  ? "viewer_3d" : "";
+                let shaderViewName = "preview_3d";
 
                 //Adjust mouse sensitivity with fov
                 let canvasWidth = shaderViews[shaderViewName].canvas.clientWidth;
@@ -145,11 +140,9 @@ panorama_tools = (function(){
     let tabMouseWheel = function(e)
     {
         let zoomPreview3D = (mouseDragPreview3D || mouseOverPreview3D) && isTabVisible("editor");
-        let zoomViewer3D = (mouseDragViewer3D || mouseOverViewer3D) && isTabVisible("viewer");
-        if(zoomPreview3D || zoomViewer3D)
+        if(zoomPreview3D)
         {
-            let shaderViewName = zoomPreview3D ? "preview_3d" :
-                                 zoomViewer3D  ? "viewer_3d" : "";
+            let shaderViewName = "preview_3d";
 
             let fov = parseFloat(shaderState.fov);
             
@@ -172,14 +165,14 @@ panorama_tools = (function(){
             for (const [viewName, shaderView] of Object.entries(shaderViews)) 
             {
                 updateShaderState(shaderView, shaderState);
-                //drawShaderView(shaderView);
+                
                 shaderView.draw()
             }
         }
         else
         {
             updateShaderState(shaderViews[name], shaderState);
-            //drawShaderView(shaderViews[name]);
+
             shaderViews[name].draw();
         }
     }
@@ -200,7 +193,7 @@ panorama_tools = (function(){
     {
         for (const [name, value] of Object.entries(shaderState)) 
         {
-            let test = shaderView.setVariable(name, value);
+            shaderView.setVariable(name, value);
         }
     }
 
