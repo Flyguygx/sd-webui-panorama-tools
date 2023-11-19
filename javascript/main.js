@@ -42,8 +42,6 @@ panorama_tools = (function(){
 
     let mouseOverPreview3D = false; //Mouse is over 3D preview
     let mouseDragPreview3D = false; //Click and drag started in 3D preview
-    let mouseOverViewer3D = false; //Mouse is over 3D preview
-    let mouseDragViewer3D = false; //Click and drag started in 3D preview
 
     let shaderViews = {};
 
@@ -165,7 +163,7 @@ panorama_tools = (function(){
             for (const [viewName, shaderView] of Object.entries(shaderViews)) 
             {
                 updateShaderState(shaderView, shaderState);
-                
+
                 shaderView.draw()
             }
         }
