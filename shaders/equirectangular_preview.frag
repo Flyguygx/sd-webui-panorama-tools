@@ -62,6 +62,24 @@ vec4 samplePanorama(sampler2D tex, vec2 uv, float offsetTop, float offsetBottom)
     }
 }
 
+vec4 sampleInpainting(sampler2D tex, vec2 uv, float maskBlend)
+{
+    vec2 tres = vec2(textureSize(tex,0));
+
+    uv.y = 1.0 - uv.y;
+    uv -= 0.5;
+    uv /= tres / min(tres.x,tres.y);
+
+    float clip = 1.0;
+    clip *= smoothstep(1.0,1.0-maskBlend,2.0*abs(uv.x));
+    clip *= smoothstep(1.0,1.0-maskBlend,2.0*abs(uv.y));
+
+    uv += 0.5;
+    uv = clamp(uv, vec2(0.0), vec2(1.0));
+
+    return texture(tex,uv,0.0) * vec4(1,1,1,clip);
+}
+
 void main(void) 
 {
     vec2 uv = gl_FragCoord.xy / resolution;
@@ -80,17 +98,6 @@ void main(void)
     maskUV = fract(maskUV/vec2(PI/2.0,PI/2.0) + 0.5);
     maskUV = vec2(0.5*maskDir.xy/maskDir.z+0.5);
 
-    float clip = 0.0;
-    if(maskEnable != 0.0)
-    {
-        clip = float((maskDir.z>abs(maskDir.x)) && (maskDir.z>abs(maskDir.y)));
-        if(maskBlend != 0.0)
-        {
-            clip *= smoothstep(1.0,1.0-maskBlend,abs(maskDir.x)/maskDir.z);
-            clip *= smoothstep(1.0,1.0-maskBlend,abs(maskDir.y)/maskDir.z);
-        }
-    }
-
     dir = rotateX(dir, radians(reorientPitch));
     dir = rotateY(dir, radians(reorientYaw));
 
@@ -98,8 +105,13 @@ void main(void)
     texUV = fract(texUV/vec2(2.0*PI,PI) + 0.5);
 
     vec4 col = samplePanorama(equirectangular,texUV, offsetTop, offsetBottom);
-    vec4 fill = samplePanorama(inpainting,maskUV, 0.0, 0.0);
-    col = mix(col,fill,clip*fill.a);
+
+    if(maskEnable == 1.0)
+    {
+        vec4 fill = sampleInpainting(inpainting, maskUV, maskBlend);
+        fill.a *= float(maskDir.z > 0.0);
+        col.rgb = mix(col.rgb,fill.rgb,fill.a);
+    }
 
     fragColor = vec4(col.rgb,1.0);  
 }
