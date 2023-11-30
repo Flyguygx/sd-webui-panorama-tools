@@ -140,7 +140,13 @@ def on_ui_tabs():
         with gr.Tab(label="Viewer", elem_id="panotools_viewer_tab"):
             viewer_canvas = gr.HTML('<canvas id="panotools_viewer_canvas" width="1920" height="1080" style="width: 100%; height: 60%;margin: 0.25rem; border-radius: 0.25rem; border: 0.5px solid"></canvas>')
         with gr.Tab(label="Sketcher", elem_id="panotools_sketcher_tab"):
-            sketcher_canvas = gr.HTML('<canvas id="panotools_sketcher_canvas" width="1920" height="1080" style="width: 100%; height: 60%;margin: 0.25rem; border-radius: 0.25rem; border: 0.5px solid"></canvas>')
+            with gr.Column():
+                with gr.Row(variant="compact"):
+                    sketcherModeLook = ToolButton('👁️', tooltip=f"Rotate view.")
+                    sketcherModeDrawWhite = ToolButton('⚪', tooltip=f"Rotate view.")
+                    sketcherModeDrawBlack = ToolButton('⚫', tooltip=f"Rotate view.")
+                sketcher_canvas = gr.HTML('<canvas id="panotools_sketcher_canvas" width="1920" height="1080" style="width: 100%; height: 60%;margin: 0.25rem; border-radius: 0.25rem; border: 0.5px solid"></canvas>')
+                sketcher_preview = gr.HTML('<canvas id="panotools_sketcher_preview" width="512" height="256" style="width: 1024; height: 512;margin: 0.25rem; border-radius: 0.25rem; border: 0.5px solid"></canvas>')
 
         #Updates the cubemap face gallery with 6 images passed as base64 dataURLs
         def update_cubemap_face_gallery(*args):

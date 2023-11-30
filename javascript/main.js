@@ -45,6 +45,9 @@ panorama_tools = (function(){
 
     let shaderViews = {};
 
+    let panoramaViewer = null;
+    let panoramaSketcher = null;
+
     let initialize = async function(baseUrl, defaultImgUrl)
     {
         extensionBaseUrl = baseUrl;
@@ -56,7 +59,8 @@ panorama_tools = (function(){
         shaderViews["preview_2d"] = await ShaderView('#panotools_equirectangular_canvas',vertShaderPath, preview2DShaderPath);
         shaderViews["preview_3d"] = await ShaderView('#panotools_preview_canvas', vertShaderPath, preview3DShaderPath);
 
-        let panoramaViewer = await PanoramaViewer(extensionBaseUrl, "#panotools_viewer_canvas");
+        panoramaViewer = await PanoramaViewer(extensionBaseUrl, "#panotools_viewer_canvas");
+        panoramaSketcher = await PanoramaSketcher(extensionBaseUrl, "#panotools_sketcher_canvas", "#panotools_sketcher_preview");
 
         //Tab elements
         mainTab = gradioApp().querySelector("#tab_panorama-tools");
