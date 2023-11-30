@@ -57,7 +57,7 @@ PanoramaSketcher = async function(baseUrl, viewerCanvasId, previewCanvasId)
             var rect = e.target.getBoundingClientRect();
             var mouseX = (e.clientX - rect.left) / rect.width;
             var mouseY = (e.clientY - rect.top) / rect.height;
-            console.log([mouseX, mouseY]);
+            
             sketcherPreview.setVariable("lineStart", [mouseX, mouseY]);
             sketcherPreview.draw();
             return false;
@@ -85,6 +85,13 @@ PanoramaSketcher = async function(baseUrl, viewerCanvasId, previewCanvasId)
         sketcherPreview.setVariable("brushColor", color)
     }
 
+    let clearCanvas = function()
+    {
+        sketcherPreview.setVariable("clear", 1)
+        sketcherPreview.draw();
+        sketcherPreview.setVariable("clear", 0)
+    }
+
     //Return a DataURL image of the panorama
     let getPanoramaImage = function(shaderViewName)
     {
@@ -98,6 +105,7 @@ PanoramaSketcher = async function(baseUrl, viewerCanvasId, previewCanvasId)
         setDrawMode,
         setBrushSize,
         setBrushColor,
+        clearCanvas,
         getPanoramaImage
     };
 }

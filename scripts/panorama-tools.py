@@ -143,8 +143,9 @@ def on_ui_tabs():
             with gr.Column():
                 with gr.Row(variant="compact"):
                     sketcherModeLook = ToolButton('👁️', tooltip=f"Rotate view.")
-                    sketcherModeDrawWhite = ToolButton('⚪', tooltip=f"Rotate view.")
-                    sketcherModeDrawBlack = ToolButton('⚫', tooltip=f"Rotate view.")
+                    sketcherModeDrawWhite = ToolButton('⚪', tooltip=f"Draw white.")
+                    sketcherModeDrawBlack = ToolButton('⚫', tooltip=f"Draw black.")
+                    sketcherClear = ToolButton('❌', tooltip=f"Clear canvas.")
                 sketcher_canvas = gr.HTML('<canvas id="panotools_sketcher_canvas" width="1920" height="1080" style="width: 100%; height: 60%;margin: 0.25rem; border-radius: 0.25rem; border: 0.5px solid"></canvas>')
                 sketcher_preview = gr.HTML('<canvas id="panotools_sketcher_preview" width="512" height="256" style="width: 1024; height: 512;margin: 0.25rem; border-radius: 0.25rem; border: 0.5px solid"></canvas>')
 
@@ -240,6 +241,9 @@ def on_ui_tabs():
         
         sketcherModeDrawBlack.click(fn=None,inputs=[],outputs=[],show_progress=False,
                                   _js="() => {panorama_tools.getSketcher().setDrawMode(true); panorama_tools.getSketcher().setBrushColor([0,0,0]);}")
+        
+        sketcherClear.click(fn=None,inputs=[],outputs=[],show_progress=False,
+                                  _js="() => {panorama_tools.getSketcher().clearCanvas()}")
 
         #Slider change events
         previewPitch.change(None, [previewPitch], None, _js="(v) => {panorama_tools.setPreviewPitch(v)}")
