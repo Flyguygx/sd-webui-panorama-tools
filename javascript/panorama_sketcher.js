@@ -1,6 +1,6 @@
 PanoramaSketcher = async function(baseUrl, viewerCanvasId, previewCanvasId)
 {
-    let defaultColor = [128,128,128,255];
+    let defaultColor = [0,0,0,255];
 
     let sketcherViewer = null;
     let sketcherPreview = null;
@@ -23,6 +23,9 @@ PanoramaSketcher = async function(baseUrl, viewerCanvasId, previewCanvasId)
         sketcherViewer = await PanoramaViewer(baseUrl, viewerCanvasId);
         sketcherPreview = await ShaderView(previewCanvasId, vertShaderPath, sketcherShaderPath);
 
+        sketcherViewer.setMouseDragHandler(onMouseDrag);
+        sketcherViewer.setViewChangedHandler(onViewChanged);
+
         sketchTexture = sketcherPreview.addPlaceholderTexture("previousFrame", defaultColor);
 
         sketcherPreview.addRenderToTexture(sketchTexture);
@@ -30,28 +33,50 @@ PanoramaSketcher = async function(baseUrl, viewerCanvasId, previewCanvasId)
             sketcherViewer.draw();
         });
 
-        sketcherPreview.setVariable("maskYaw", 0.0);
-        sketcherPreview.setVariable("maskPitch", 90.0);
-        sketcherPreview.setVariable("maskFov", 90.0);
+        sketcherViewer.setCamera({
+            yaw: 0.0,
+            pitch: 0.0,
+            fov: 90.0
+        });
+
+        sketcherPreview.setVariable("lineStart", [0,0]);
         sketcherPreview.draw();
     }
 
-    let setMode = function(mode)
+    let onViewChanged = function(cameraState)
     {
-        if(mode == 0)
-        {
-            drawMode = false;
-        }
+        sketcherPreview.setVariable("viewYaw", cameraState.yaw);
+        sketcherPreview.setVariable("viewPitch", cameraState.pitch);
+        sketcherPreview.setVariable("viewFov", cameraState.fov);
+    }
 
-        if(mode == 1)
+    let onMouseDrag = function(e)
+    {
+        if(drawMode)
         {
-            drawMode = true;
+            var rect = e.target.getBoundingClientRect();
+            var mouseX = (e.clientX - rect.left) / rect.width;
+            var mouseY = (e.clientY - rect.top) / rect.height;
+            console.log([mouseX, mouseY]);
+            sketcherPreview.setVariable("lineStart", [mouseX, mouseY]);
+            sketcherPreview.draw();
+            return false;
         }
+        else
+        {
+            return true;
+        }
+    }
+
+    let setDrawMode = function(mode)
+    {
+        drawMode = mode;
     }
 
     let setBrushSize = function(size)
     {
         brush.size = size;
+        sketcherPreview.setVariable("brushSize", size)
     }
 
     let setBrushColor = function(color)
@@ -70,7 +95,7 @@ PanoramaSketcher = async function(baseUrl, viewerCanvasId, previewCanvasId)
     
     //Exported functions to be called from Python
     return {
-        setMode,
+        setDrawMode,
         setBrushSize,
         setBrushColor,
         getPanoramaImage

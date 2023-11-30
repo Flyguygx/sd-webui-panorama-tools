@@ -231,6 +231,15 @@ def on_ui_tabs():
                                    inputs=[dummyComponent,dummyComponent,dummyComponent,dummyComponent,dummyComponent,dummyComponent],
                                    outputs=[cubemapFaceGallery],show_progress=True,
                                    _js="() => {return panorama_tools.renderCubemapFaces()}")
+        
+        sketcherModeLook.click(fn=None,inputs=[],outputs=[],show_progress=False,
+                                  _js="() => {panorama_tools.getSketcher().setDrawMode(false);}")
+        
+        sketcherModeDrawWhite.click(fn=None,inputs=[],outputs=[],show_progress=False,
+                                  _js="() => {panorama_tools.getSketcher().setDrawMode(true); panorama_tools.getSketcher().setBrushColor([1,1,1]);}")
+        
+        sketcherModeDrawBlack.click(fn=None,inputs=[],outputs=[],show_progress=False,
+                                  _js="() => {panorama_tools.getSketcher().setDrawMode(true); panorama_tools.getSketcher().setBrushColor([0,0,0]);}")
 
         #Slider change events
         previewPitch.change(None, [previewPitch], None, _js="(v) => {panorama_tools.setPreviewPitch(v)}")

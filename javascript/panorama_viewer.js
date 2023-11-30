@@ -27,6 +27,10 @@ PanoramaViewer = async function(baseUrl, canvasId)
 
     let shaderView = null;
 
+    //Event Handlers
+    let mouseDragHandler = function(e){return true;}
+    let viewChanged = function(cameraState){}
+
     let initialize = async function(baseUrl, canvasId)
     {
         let vertShaderPath =   baseUrl + "/shaders/default.vert";
@@ -41,8 +45,8 @@ PanoramaViewer = async function(baseUrl, canvasId)
         viewerCanvas.onmouseout = function(e){mouse.drag = false;}
 
         viewerCanvas.onmouseup = function(e){if(e.buttons&1 === 1){mouse.drag = false;} e.preventDefault();}
-        viewerCanvas.onmousemove = function(e){onMouseMove(e)};    
-        viewerCanvas.onwheel = function(e){onMouseWheel(e)};
+        viewerCanvas.onmousemove = function(e){onCanvasMouseMove(e)};    
+        viewerCanvas.onwheel = function(e){onCanvasMouseWheel(e)};
 
         //Setup render-to texture for 3D preview
         panoramaTexture = shaderView.addPlaceholderTexture("equirectangular", defaultColor);
@@ -51,32 +55,38 @@ PanoramaViewer = async function(baseUrl, canvasId)
     }
 
     //Handles mouse rotation for 3d preview if drag started in 3d preview.
-    let onMouseMove = function(e)
+    let onCanvasMouseMove = function(e)
     {
         if(mouse.drag && shaderView.canvas.checkVisibility())
         {
             if(e.buttons & 1 === 1) //Left/Primary mouse button clicked
             {
-                //Adjust mouse sensitivity with fov
-                let canvasWidth = shaderView.canvas.clientWidth;
-                let canvasHeight = shaderView.canvas.clientHeight;
-                let mouseSensitivityPitch = cameraState.fov/canvasHeight;
+                if(mouseDragHandler(e))
+                {
+                    //Adjust mouse sensitivity with fov
+                    let canvasWidth = shaderView.canvas.clientWidth;
+                    let canvasHeight = shaderView.canvas.clientHeight;
+                    let mouseSensitivityPitch = cameraState.fov/canvasHeight;
 
-                //Calculate horizontal FOV from vertical FOV.
-                let focalLen = 1.0 / Math.tan(0.5*cameraState.fov * (Math.PI/180.0));
-                let horizFov = 2.0 * Math.atan((canvasWidth/canvasHeight)/focalLen) * (180.0/Math.PI); 
-                let mouseSensitivityYaw = horizFov / canvasWidth;
-                
-                let yaw = cameraState.yaw - mouseSensitivityYaw*e.movementX;
-                let pitch = cameraState.pitch - mouseSensitivityPitch*-e.movementY;
+                    //Calculate horizontal FOV from vertical FOV.
+                    let focalLen = 1.0 / Math.tan(0.5*cameraState.fov * (Math.PI/180.0));
+                    let horizFov = 2.0 * Math.atan((canvasWidth/canvasHeight)/focalLen) * (180.0/Math.PI); 
+                    let mouseSensitivityYaw = horizFov / canvasWidth;
+                    
+                    let yaw = cameraState.yaw - mouseSensitivityYaw*e.movementX;
+                    let pitch = cameraState.pitch - mouseSensitivityPitch*-e.movementY;
 
-                //Clamp pitch between +/-90deg, wrap yaw between +/-180deg
-                pitch = Math.max(-90,Math.min(90,pitch));
-                yaw = (((yaw+180)%360)+360)%360 - 180;
-                
-                cameraState.yaw = yaw.toFixed(angleResolution);
-                cameraState.pitch = pitch.toFixed(angleResolution);
-                draw();
+                    //Clamp pitch between +/-90deg, wrap yaw between +/-180deg
+                    pitch = Math.max(-90,Math.min(90,pitch));
+                    yaw = (((yaw+180)%360)+360)%360 - 180;
+                    
+                    cameraState.yaw = yaw.toFixed(angleResolution);
+                    cameraState.pitch = pitch.toFixed(angleResolution);
+
+                    viewChanged(cameraState);
+
+                    draw();
+                }
                 
                 //Avoid selecting text while rotating view
                 e.preventDefault();
@@ -89,12 +99,14 @@ PanoramaViewer = async function(baseUrl, canvasId)
     }
 
     //Handles mouse zooming in 3d preview if the mouse is over it or while rotating the preview.
-    let onMouseWheel = function(e)
+    let onCanvasMouseWheel = function(e)
     {
         if((mouse.over || mouse.drag) && shaderView.canvas.checkVisibility())
         {            
             cameraState.fov += e.deltaY * zoomSensitivity;
             cameraState.fov = Math.max(0,Math.min(180,cameraState.fov));
+
+            viewChanged(cameraState);
 
             draw();
 
@@ -142,15 +154,18 @@ PanoramaViewer = async function(baseUrl, canvasId)
         return panoramaTexture;
     }
 
-    let setPitch = function(v){cameraState.pitch = v;}
-    let setYaw = function(v){cameraState.yaw = v;}
-    let setFov = function(v){cameraState.fov = v;}
-    let setCamera = function(v){cameraState = v;}
+    let setPitch = function(v){cameraState.pitch = v; viewChanged(cameraState); draw();}
+    let setYaw = function(v){cameraState.yaw = v; viewChanged(cameraState); draw();}
+    let setFov = function(v){cameraState.fov = v; viewChanged(cameraState); draw();}
+    let setCamera = function(v){cameraState = v; viewChanged(cameraState); draw();}
 
     let getPitch = function(){return cameraState.pitch;}
     let getYaw = function(){return cameraState.yaw;}
     let getFov = function(){return cameraState.fov;}
     let getCamera = function(){return cameraState;}
+
+    let setMouseDragHandler = function(func){mouseDragHandler = func;}
+    let setViewChangedHandler = function(func){viewChanged = func;}
 
     await initialize(baseUrl, canvasId);
     
@@ -168,6 +183,8 @@ PanoramaViewer = async function(baseUrl, canvasId)
         getCamera,
         getTexture,
         getImageDataURL,
-        downloadImage
+        downloadImage,
+        setMouseDragHandler,
+        setViewChangedHandler
     };
 }

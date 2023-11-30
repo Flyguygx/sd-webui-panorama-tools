@@ -475,6 +475,8 @@ panorama_tools = (function(){
     let setInpaintFov = function(v){setParameter('maskFov', v);}
     let setInpaintMaskBlur = function(v){setParameter('maskBlend', v);}
 
+    let getSketcher = function(){return panoramaSketcher;}
+
     //Exported functions to be called from Python
     return {
         initialize,
@@ -513,6 +515,8 @@ panorama_tools = (function(){
         setInpaintPitch,
         setInpaintYaw,
         setInpaintFov,
-        setInpaintMaskBlur
+        setInpaintMaskBlur,
+
+        getSketcher
     };
 })();
