@@ -6,7 +6,9 @@ uniform vec2 resolution;
 uniform float pitch;
 uniform float yaw;
 uniform float fov;
+uniform float referenceEnable;
 uniform sampler2D equirectangular;
+uniform sampler2D reference;
 
 const float PI = 3.1415926535;
 
@@ -46,7 +48,20 @@ void main(void)
     texUV = fract(texUV/vec2(2.0*PI,PI) + 0.5);
     texUV.y = 1.0-texUV.y;
 
-    vec4 col = texture(equirectangular, texUV,0.0);
+    vec4 col = texture(equirectangular, texUV, 0.0);
+
+    if(referenceEnable != 0.0)
+    {
+        vec4 refCol = texture(reference, texUV, 0.0);
+
+        float avgCol = (col.r+col.g+col.b)/3.0;
+        float refAvgCol = (refCol.r+refCol.g+refCol.b)/3.0;
+
+        if(refAvgCol > avgCol)
+        {
+            col = refCol;
+        }
+    }
 
     fragColor = vec4(col.rgb,1.0); 
 }

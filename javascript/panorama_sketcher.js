@@ -22,10 +22,13 @@ PanoramaSketcher = async function(baseUrl, viewerCanvasId, previewCanvasId)
     {
         let vertShaderPath =   baseUrl + "/shaders/default.vert";
         let sketcherShaderPath = baseUrl + "/shaders/equirectangular_sketch.frag";
+        let referenceImagePath = baseUrl + "/images/reference_dot_grid.png";
 
         sketcherViewer = await PanoramaViewer(baseUrl, viewerCanvasId);
         sketcherPreview = await ShaderView(previewCanvasId, vertShaderPath, sketcherShaderPath);
 
+        sketcherViewer.loadReferenceImage(referenceImagePath);
+        sketcherViewer.setReferenceEnable(true);
         sketcherViewer.setMouseDownHandler(onMouseDown);
         sketcherViewer.setMouseDragHandler(onMouseDrag);
         sketcherViewer.setViewChangedHandler(onViewChanged);

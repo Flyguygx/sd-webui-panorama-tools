@@ -21,6 +21,7 @@ PanoramaViewer = async function(baseUrl, canvasId)
     }
 
     let panoramaTexture = null;
+    let referenceTexture = null;
 
     let mouseOverViewer3D = false; //Mouse is over 3D preview
     let mouseDragViewer3D = false; //Click and drag started in 3D preview
@@ -51,6 +52,9 @@ PanoramaViewer = async function(baseUrl, canvasId)
 
         //Setup render-to texture for 3D preview
         panoramaTexture = shaderView.addPlaceholderTexture("equirectangular", defaultColor);
+        referenceTexture = shaderView.addPlaceholderTexture("reference", [0,0,0,0]);
+
+        shaderView.setVariable("referenceEnable", 0);
 
         draw();
     }
@@ -170,6 +174,27 @@ PanoramaViewer = async function(baseUrl, canvasId)
         return panoramaTexture;
     }
 
+    //load reference image from url
+    let loadReferenceImage = function(url)
+    {
+        shaderView.loadTexture('reference', url, function(loaded){
+            draw();
+        });
+    }
+
+    //load reference image from url
+    let setReferenceEnable = function(enabled)
+    {
+        if(enabled)
+        {
+            shaderView.setVariable("referenceEnable", 1);
+        }
+        else
+        {
+            shaderView.setVariable("referenceEnable", 0);
+        }
+    }
+
     let setPitch = function(v){cameraState.pitch = v; viewChangedHandler(cameraState); draw();}
     let setYaw = function(v){cameraState.yaw = v; viewChangedHandler(cameraState); draw();}
     let setFov = function(v){cameraState.fov = v; viewChangedHandler(cameraState); draw();}
@@ -202,6 +227,8 @@ PanoramaViewer = async function(baseUrl, canvasId)
         getTexture,
         getImageDataURL,
         downloadImage,
+        loadReferenceImage,
+        setReferenceEnable,
         setMouseDownHandler,
         setMouseDragHandler,
         setViewChangedHandler
