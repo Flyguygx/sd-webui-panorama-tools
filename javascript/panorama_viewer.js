@@ -28,8 +28,9 @@ PanoramaViewer = async function(baseUrl, canvasId)
     let shaderView = null;
 
     //Event Handlers
+    let mouseDownHandler = function(e){return true;}
     let mouseDragHandler = function(e){return true;}
-    let viewChanged = function(cameraState){}
+    let viewChangedHandler = function(cameraState){}
 
     let initialize = async function(baseUrl, canvasId)
     {
@@ -40,13 +41,13 @@ PanoramaViewer = async function(baseUrl, canvasId)
 
         //Viewer canvas events
         let viewerCanvas = shaderView.canvas;
-        viewerCanvas.onmousedown = function(e){if(e.buttons&1 === 1){mouse.drag = true;}}
+        viewerCanvas.onmousedown = onCanvasMouseDown;
         viewerCanvas.onmouseover = function(e){mouse.over = true;}
         viewerCanvas.onmouseout = function(e){mouse.drag = false;}
 
         viewerCanvas.onmouseup = function(e){if(e.buttons&1 === 1){mouse.drag = false;} e.preventDefault();}
-        viewerCanvas.onmousemove = function(e){onCanvasMouseMove(e)};    
-        viewerCanvas.onwheel = function(e){onCanvasMouseWheel(e)};
+        viewerCanvas.onmousemove = onCanvasMouseMove;    
+        viewerCanvas.onwheel = onCanvasMouseWheel;
 
         //Setup render-to texture for 3D preview
         panoramaTexture = shaderView.addPlaceholderTexture("equirectangular", defaultColor);
@@ -54,10 +55,19 @@ PanoramaViewer = async function(baseUrl, canvasId)
         draw();
     }
 
+    let onCanvasMouseDown = function(e)
+    {
+        if(e.buttons&1 === 1 && shaderView.canvas.checkVisibility())
+        {
+            mouseDownHandler(e);
+            mouse.drag = true;
+        }
+    }
+
     //Handles mouse rotation for 3d preview if drag started in 3d preview.
     let onCanvasMouseMove = function(e)
     {
-        if(mouse.drag && shaderView.canvas.checkVisibility())
+        if(mouse.drag)
         {
             if(e.buttons & 1 === 1) //Left/Primary mouse button clicked
             {
@@ -83,7 +93,7 @@ PanoramaViewer = async function(baseUrl, canvasId)
                     cameraState.yaw = yaw.toFixed(angleResolution);
                     cameraState.pitch = pitch.toFixed(angleResolution);
 
-                    viewChanged(cameraState);
+                    viewChangedHandler(cameraState);
 
                     draw();
                 }
@@ -106,7 +116,7 @@ PanoramaViewer = async function(baseUrl, canvasId)
             cameraState.fov += e.deltaY * zoomSensitivity;
             cameraState.fov = Math.max(0,Math.min(180,cameraState.fov));
 
-            viewChanged(cameraState);
+            viewChangedHandler(cameraState);
 
             draw();
 
@@ -154,18 +164,19 @@ PanoramaViewer = async function(baseUrl, canvasId)
         return panoramaTexture;
     }
 
-    let setPitch = function(v){cameraState.pitch = v; viewChanged(cameraState); draw();}
-    let setYaw = function(v){cameraState.yaw = v; viewChanged(cameraState); draw();}
-    let setFov = function(v){cameraState.fov = v; viewChanged(cameraState); draw();}
-    let setCamera = function(v){cameraState = v; viewChanged(cameraState); draw();}
+    let setPitch = function(v){cameraState.pitch = v; viewChangedHandler(cameraState); draw();}
+    let setYaw = function(v){cameraState.yaw = v; viewChangedHandler(cameraState); draw();}
+    let setFov = function(v){cameraState.fov = v; viewChangedHandler(cameraState); draw();}
+    let setCamera = function(v){cameraState = v; viewChangedHandler(cameraState); draw();}
 
     let getPitch = function(){return cameraState.pitch;}
     let getYaw = function(){return cameraState.yaw;}
     let getFov = function(){return cameraState.fov;}
     let getCamera = function(){return cameraState;}
 
+    let setMouseDownHandler = function(func){mouseDownHandler = func;}
     let setMouseDragHandler = function(func){mouseDragHandler = func;}
-    let setViewChangedHandler = function(func){viewChanged = func;}
+    let setViewChangedHandler = function(func){viewChangedHandler = func;}
 
     await initialize(baseUrl, canvasId);
     
@@ -184,6 +195,7 @@ PanoramaViewer = async function(baseUrl, canvasId)
         getTexture,
         getImageDataURL,
         downloadImage,
+        setMouseDownHandler,
         setMouseDragHandler,
         setViewChangedHandler
     };

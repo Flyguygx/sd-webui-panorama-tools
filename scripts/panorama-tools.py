@@ -140,14 +140,27 @@ def on_ui_tabs():
         with gr.Tab(label="Viewer", elem_id="panotools_viewer_tab"):
             viewer_canvas = gr.HTML('<canvas id="panotools_viewer_canvas" width="1920" height="1080" style="width: 100%; height: 60%;margin: 0.25rem; border-radius: 0.25rem; border: 0.5px solid"></canvas>')
         with gr.Tab(label="Sketcher", elem_id="panotools_sketcher_tab"):
-            with gr.Column():
-                with gr.Row(variant="compact"):
-                    sketcherModeLook = ToolButton('👁️', tooltip=f"Rotate view.")
-                    sketcherModeDrawWhite = ToolButton('⚪', tooltip=f"Draw white.")
-                    sketcherModeDrawBlack = ToolButton('⚫', tooltip=f"Draw black.")
-                    sketcherClear = ToolButton('❌', tooltip=f"Clear canvas.")
+            with gr.Row(variant="compact"):
+                with gr.Column(scale=50):
+                    gr.Label(visible=False)
+                with gr.Column(scale=50):
+                    with gr.Row(variant="compact"):
+                        sketcherModeLook = ToolButton('👁️', tooltip=f"Rotate view.")
+                        sketcherModeDrawWhite = ToolButton('⚪', tooltip=f"Draw white.")
+                        sketcherModeDrawBlack = ToolButton('⚫', tooltip=f"Draw black.")
+                        sketcherBrushSize = gr.Slider(elem_id="panorama_tools_sketcher_brush_size", label="🞄⦁⚫︎⬤  ", minimum=0, maximum=100, value=5, step=1, interactive=True)
+                        sketcherClear = ToolButton('❌', tooltip=f"Clear canvas.")
+                with gr.Column(scale=50):
+                    gr.Label(visible=False)
+            with gr.Row(variant="compact"):
                 sketcher_canvas = gr.HTML('<canvas id="panotools_sketcher_canvas" width="1920" height="1080" style="width: 100%; height: 60%;margin: 0.25rem; border-radius: 0.25rem; border: 0.5px solid"></canvas>')
-                sketcher_preview = gr.HTML('<canvas id="panotools_sketcher_preview" width="512" height="256" style="width: 1024; height: 512;margin: 0.25rem; border-radius: 0.25rem; border: 0.5px solid"></canvas>')
+            with gr.Row(variant="compact"):
+                with gr.Column(scale=50):
+                    gr.Label(visible=False)
+                with gr.Column(scale=50):
+                    sketcher_preview = gr.HTML('<canvas id="panotools_sketcher_preview" width="1024" height="512" style="width: 100%; height: 50%;margin: 0.25rem; border-radius: 0.25rem; border: 0.5px solid"></canvas>')
+                with gr.Column(scale=50):
+                    gr.Label(visible=False)
 
         #Updates the cubemap face gallery with 6 images passed as base64 dataURLs
         def update_cubemap_face_gallery(*args):
@@ -265,6 +278,8 @@ def on_ui_tabs():
         previewHeight.change(None, [previewWidth, previewHeight], None, _js="(w,h) => {panorama_tools.updateResolution('preview_3d', w, h)}")
         panoramaWidth.change(None, [panoramaWidth, panoramaHeight], None, _js="(w,h) => {panorama_tools.updateResolution('preview_2d', w, h, true)}")
         panoramaHeight.change(None, [panoramaWidth, panoramaHeight], None, _js="(w,h) => {panorama_tools.updateResolution('preview_2d', w, h, true)}")
+
+        sketcherBrushSize.change(None, [sketcherBrushSize], None, _js="(v) => {panorama_tools.getSketcher().setBrushSize(v/100.0)}")
 
         #Image input change events
         panorama_input_image.change(None, [panorama_input_image], None, _js="(url) => {panorama_tools.loadPanoramaImage(url)}")

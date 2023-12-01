@@ -87,8 +87,10 @@ void main(void)
     texUV = fract(texUV/vec2(2.0*PI,PI) + 0.5);
 
     vec2 p0 = (vec2(lineStart.x, 1.0-lineStart.y)-0.5)*aspect + 0.5;
-    float d = sdLine(p0, p0, maskUV);
-    d -= 0.01;
+    vec2 p1 = (vec2(lineEnd.x, 1.0-lineEnd.y)-0.5)*aspect + 0.5;
+
+    float d = sdLine(p0, p1, maskUV);
+    d -= brushSize*0.25;
     d = smoothstep(1./256., 0.0, d) * float(maskDir.z > 0.0);
 
     col = mix(col, vec4(brushColor,1), d);

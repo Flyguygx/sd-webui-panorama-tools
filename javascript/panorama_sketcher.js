@@ -15,6 +15,9 @@ PanoramaSketcher = async function(baseUrl, viewerCanvasId, previewCanvasId)
         color : [0.0,0.0,0.0]
     }
 
+    let currentMousePos = [0,0]
+    let previousMousePos = [0,0]
+
     let initialize = async function(baseUrl, viewerCanvasId, previewCanvasId)
     {
         let vertShaderPath =   baseUrl + "/shaders/default.vert";
@@ -23,6 +26,7 @@ PanoramaSketcher = async function(baseUrl, viewerCanvasId, previewCanvasId)
         sketcherViewer = await PanoramaViewer(baseUrl, viewerCanvasId);
         sketcherPreview = await ShaderView(previewCanvasId, vertShaderPath, sketcherShaderPath);
 
+        sketcherViewer.setMouseDownHandler(onMouseDown);
         sketcherViewer.setMouseDragHandler(onMouseDrag);
         sketcherViewer.setViewChangedHandler(onViewChanged);
 
@@ -40,6 +44,10 @@ PanoramaSketcher = async function(baseUrl, viewerCanvasId, previewCanvasId)
         });
 
         sketcherPreview.setVariable("lineStart", [0,0]);
+        sketcherPreview.setVariable("lineEnd", [0,0]);
+
+        setBrushSize(0.05);
+
         sketcherPreview.draw();
     }
 
@@ -50,6 +58,19 @@ PanoramaSketcher = async function(baseUrl, viewerCanvasId, previewCanvasId)
         sketcherPreview.setVariable("viewFov", cameraState.fov);
     }
 
+    let onMouseDown = function(e)
+    {
+        var rect = e.target.getBoundingClientRect();
+        var mouseX = (e.clientX - rect.left) / rect.width;
+        var mouseY = (e.clientY - rect.top) / rect.height;
+
+        currentMousePos = [mouseX, mouseY];
+        previousMousePos = [mouseX, mouseY];
+
+        sketcherPreview.setVariable("lineStart", currentMousePos);
+        sketcherPreview.setVariable("lineEnd", previousMousePos);
+    }
+
     let onMouseDrag = function(e)
     {
         if(drawMode)
@@ -57,8 +78,12 @@ PanoramaSketcher = async function(baseUrl, viewerCanvasId, previewCanvasId)
             var rect = e.target.getBoundingClientRect();
             var mouseX = (e.clientX - rect.left) / rect.width;
             var mouseY = (e.clientY - rect.top) / rect.height;
-            
-            sketcherPreview.setVariable("lineStart", [mouseX, mouseY]);
+
+            previousMousePos = currentMousePos;
+            currentMousePos = [mouseX, mouseY];
+
+            sketcherPreview.setVariable("lineStart", currentMousePos);
+            sketcherPreview.setVariable("lineEnd", previousMousePos);
             sketcherPreview.draw();
             return false;
         }
