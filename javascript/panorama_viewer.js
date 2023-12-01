@@ -137,6 +137,12 @@ PanoramaViewer = async function(baseUrl, canvasId)
     }
 
     //Update the resolution of the viewer
+    let getResolution = function()
+    {
+        return shaderView.getResolution();
+    }
+
+    //Update the resolution of the viewer
     let setResolution = function(width,height)
     {
         shaderView.setResolution(width, height);
@@ -187,6 +193,7 @@ PanoramaViewer = async function(baseUrl, canvasId)
         setYaw,
         setFov,
         setCamera,
+        getResolution,
         setResolution,
         getPitch,
         getYaw,

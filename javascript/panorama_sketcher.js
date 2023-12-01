@@ -43,6 +43,7 @@ PanoramaSketcher = async function(baseUrl, viewerCanvasId, previewCanvasId)
             fov: 90.0
         });
 
+        sketcherPreview.setVariable("viewResolution", sketcherViewer.getResolution());
         sketcherPreview.setVariable("lineStart", [0,0]);
         sketcherPreview.setVariable("lineEnd", [0,0]);
 

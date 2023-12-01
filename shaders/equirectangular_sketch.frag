@@ -12,6 +12,7 @@ uniform vec3 brushColor;
 uniform vec2 lineStart;
 uniform vec2 lineEnd;
 uniform float clear;
+uniform vec2 viewResolution;
 
 uniform sampler2D previousFrame;
 
@@ -67,7 +68,7 @@ void main(void)
 {
     vec2 uv = gl_FragCoord.xy / resolution;
     vec4 col = texture(previousFrame,vec2(uv.x,1.0-uv.y),0.0);
-    vec2 aspect = vec2(1920,1080)/1080.0;
+    vec2 aspect = viewResolution/viewResolution.y;
 
     vec2 ang = (uv-0.5)*vec2(2.0*PI,PI);
     vec3 dir = vec3(sin(ang.x),sin(ang.y),cos(ang.x));

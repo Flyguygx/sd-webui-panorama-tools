@@ -142,7 +142,13 @@ ShaderView = async function(canvasId, vertShaderName, fragShaderName)
         }
     }
 
-    //Update the resolution of a named shader view, optionally redraw all views (for dependent render-to textures)
+    //Get the resolution of a the shader view
+    let getResolution = function()
+    {
+        return [state.canvas.width, state.canvas.height];
+    }
+
+    //Set the resolution of the named shader view
     let setResolution = function(width,height)
     {
         state.canvas.width = width;
@@ -232,6 +238,7 @@ ShaderView = async function(canvasId, vertShaderName, fragShaderName)
         canvas: state.canvas,
         setVariable,
         draw,
+        getResolution,
         setResolution,
         getImageDataURL,
         downloadImage,
