@@ -16,6 +16,11 @@ sendto_inputs = {
     "extras" : {"elem_id" : "extras_image", "component" : None}
 }
 
+sendto_controlnet_inputs = {
+    "txt2img" : [],
+    "img2img" : []
+}
+
 defaultImage = "/images/default_panorama.png"
 
 class PanoramaToolsScript(scripts.Script):
@@ -139,24 +144,26 @@ def on_ui_tabs():
 
         with gr.Tab(label="Viewer", elem_id="panotools_viewer_tab"):
             viewer_canvas = gr.HTML('<canvas id="panotools_viewer_canvas" width="1920" height="1080" style="width: 100%; height: 60%;margin: 0.25rem; border-radius: 0.25rem; border: 0.5px solid"></canvas>')
+
         with gr.Tab(label="Sketcher", elem_id="panotools_sketcher_tab"):
             with gr.Row(variant="compact"):
-                with gr.Column(scale=50):
+                with gr.Column(scale=1):
                     gr.Label(visible=False)
-                with gr.Column(scale=50):
+                with gr.Column(scale=2):
                     with gr.Row(variant="compact"):
-                        sketcherModeLook = ToolButton('👁️', tooltip=f"Rotate view.")
-                        sketcherModeDrawWhite = ToolButton('⚪', tooltip=f"Draw white.")
-                        sketcherModeDrawBlack = ToolButton('⚫', tooltip=f"Draw black.")
+                        sketcherMode = gr.Radio(["Look", "Draw", "Erase"], label="Mode", value="Look")
                         sketcherBrushSize = gr.Slider(elem_id="panorama_tools_sketcher_brush_size", label="🞄⦁⚫︎⬤  ", minimum=0, maximum=100, value=5, step=1, interactive=True)
                         sketcherClear = ToolButton('❌', tooltip=f"Clear canvas.")
-                with gr.Column(scale=50):
+                with gr.Column(scale=1):
                     gr.Label(visible=False)
             with gr.Row(variant="compact"):
                 sketcher_canvas = gr.HTML('<canvas id="panotools_sketcher_canvas" width="1920" height="1080" style="width: 100%; height: 60%;margin: 0.25rem; border-radius: 0.25rem; border: 0.5px solid"></canvas>')
             with gr.Row(variant="compact"):
                 with gr.Column(scale=50):
-                    gr.Label(visible=False)
+                    with gr.Accordion("ControlNet", open=True, elem_id="panorama_tools_sendto_controlnet", visible=True):
+                        with gr.Row(variant="compact"):
+                            sendSketchToTxt2ImgControlNet = gr.Button(value="Send To Txt2Img Unit 0", min_width=100, interactive=len(sendto_controlnet_inputs["txt2img"])>0)
+                            sendSketchToImg2ImgControlNet = gr.Button(value="Send To Img2Img Unit 0", min_width=100, interactive=len(sendto_controlnet_inputs["txt2img"])>0)
                 with gr.Column(scale=50):
                     sketcher_preview = gr.HTML('<canvas id="panotools_sketcher_preview" width="1024" height="512" style="width: 100%; height: 50%;margin: 0.25rem; border-radius: 0.25rem; border: 0.5px solid"></canvas>')
                 with gr.Column(scale=50):
@@ -240,23 +247,23 @@ def on_ui_tabs():
         send3DImgToExtras.click(fn=None,inputs=[],outputs=[sendto_inputs["extras"]["component"]],show_progress=False,
                                 _js="() => {panorama_tools.savePreviewSettings(); return panorama_tools.sendShaderViewTo('preview_3d','extras');}")
         
-        #Need dummyComponents in input or Gradio won't pass all of the objects in the array returned form JS
+        #Need dummyComponents in input or Gradio won't pass all of the objects in the array returned from JS
         generateCubemapFaces.click(fn=update_cubemap_face_gallery,
                                    inputs=[dummyComponent,dummyComponent,dummyComponent,dummyComponent,dummyComponent,dummyComponent],
                                    outputs=[cubemapFaceGallery],show_progress=True,
                                    _js="() => {return panorama_tools.renderCubemapFaces()}")
-        
-        sketcherModeLook.click(fn=None,inputs=[],outputs=[],show_progress=False,
-                                  _js="() => {panorama_tools.getSketcher().setDrawMode(false);}")
-        
-        sketcherModeDrawWhite.click(fn=None,inputs=[],outputs=[],show_progress=False,
-                                  _js="() => {panorama_tools.getSketcher().setDrawMode(true); panorama_tools.getSketcher().setBrushColor([1,1,1]);}")
-        
-        sketcherModeDrawBlack.click(fn=None,inputs=[],outputs=[],show_progress=False,
-                                  _js="() => {panorama_tools.getSketcher().setDrawMode(true); panorama_tools.getSketcher().setBrushColor([0,0,0]);}")
+
+        sketcherMode.change(fn=None,inputs=[sketcherMode],outputs=[],show_progress=False,
+                                  _js="(v) => {panorama_tools.getSketcher().setMode(v);console.log(v);}")
         
         sketcherClear.click(fn=None,inputs=[],outputs=[],show_progress=False,
                                   _js="() => {panorama_tools.getSketcher().clearCanvas()}")
+
+        sendSketchToTxt2ImgControlNet.click(fn=None,inputs=[],outputs=[sendto_controlnet_inputs["txt2img"][0]], show_progress=False,
+                                  _js="() => {switch_to_txt2img(); return panorama_tools.getSketcher().getPanoramaImage();}")
+        
+        sendSketchToImg2ImgControlNet.click(fn=None,inputs=[],outputs=[sendto_controlnet_inputs["img2img"][0]], show_progress=False,
+                                  _js="() => {switch_to_img2img(); return panorama_tools.getSketcher().getPanoramaImage();}")
 
         #Slider change events
         previewPitch.change(None, [previewPitch], None, _js="(v) => {panorama_tools.setPreviewPitch(v)}")
@@ -296,6 +303,15 @@ def after_component(component, **kwargs):
     for name, sendto_input in sendto_inputs.items():
         if kwargs.get("elem_id") == sendto_input["elem_id"]:
             sendto_input["component"] = component
+
+    #Find ControlNet image inputs
+    if kwargs.get("elem_classes") is not None:
+        if "cnet-image" in kwargs.get("elem_classes") and "input" in kwargs.get("elem_id"):
+            if "txt2img" in kwargs.get("elem_id"):
+                sendto_controlnet_inputs["txt2img"].append(component)
+
+            if "img2img" in kwargs.get("elem_id"):   
+                sendto_controlnet_inputs["img2img"].append(component) 
 
 script_callbacks.on_ui_tabs(on_ui_tabs)
 script_callbacks.on_after_component(after_component)

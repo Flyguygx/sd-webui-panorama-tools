@@ -114,6 +114,26 @@ PanoramaSketcher = async function(baseUrl, viewerCanvasId, previewCanvasId)
         sketcherPreview.setVariable("brushColor", color)
     }
 
+    let setMode = function(modeName)
+    {
+        modeName = modeName.toLowerCase();
+
+        if(modeName === "look")
+        {
+            setDrawMode(false);
+        }
+        if(modeName === "draw")
+        {
+            setDrawMode(true);
+            setBrushColor([1,1,1]);
+        }
+        if(modeName === "erase")
+        {
+            setDrawMode(true);
+            setBrushColor([0,0,0]);
+        }
+    }
+
     let clearCanvas = function()
     {
         sketcherPreview.setVariable("clear", 1)
@@ -134,6 +154,7 @@ PanoramaSketcher = async function(baseUrl, viewerCanvasId, previewCanvasId)
         setDrawMode,
         setBrushSize,
         setBrushColor,
+        setMode,
         clearCanvas,
         getPanoramaImage
     };
