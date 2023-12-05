@@ -12,6 +12,7 @@ uniform vec3 brushColor;
 uniform vec2 lineStart;
 uniform vec2 lineEnd;
 uniform float clear;
+uniform float drawing;
 uniform vec2 viewResolution;
 
 uniform sampler2D previousFrame;
@@ -94,7 +95,7 @@ void main(void)
     d -= brushSize*0.25;
     d = smoothstep(1./256., 0.0, d) * float(maskDir.z > 0.0);
 
-    col = mix(col, vec4(brushColor,1), d);
+    col = mix(col, vec4(brushColor,1), d*drawing);
     col = mix(col, vec4(0,0,0,1), clear);
 
     fragColor = vec4(col.rgb,1.0);  

@@ -375,7 +375,7 @@ panorama_tools = (function(){
     //Download an image og the specified shader view.
     let downloadShaderViewImage = function(shaderViewName, filename = 'untitled.png') {
         //let canvas = shaderViews[shaderViewName].canvas;
-        let data = shaderViews[shaderViewName].getImageDataURL();//canvas.toDataURL("image/png", 1.0);
+        let data = shaderViews[shaderViewName].getImageDataURL();
         let a = document.createElement('a');
         a.href = data;
         a.download = filename;

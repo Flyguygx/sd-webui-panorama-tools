@@ -30,6 +30,7 @@ PanoramaViewer = async function(baseUrl, canvasId)
 
     //Event Handlers
     let mouseDownHandler = function(e){return true;}
+    let mouseUpHandler = function(e){return true;}
     let mouseDragHandler = function(e){return true;}
     let viewChangedHandler = function(cameraState){}
 
@@ -46,7 +47,7 @@ PanoramaViewer = async function(baseUrl, canvasId)
         viewerCanvas.onmouseover = function(e){mouse.over = true;}
         viewerCanvas.onmouseout = function(e){mouse.drag = false;}
 
-        viewerCanvas.onmouseup = function(e){if(e.buttons&1 === 1){mouse.drag = false;} e.preventDefault();}
+        viewerCanvas.onmouseup = onCanvasMouseUp;
         viewerCanvas.onmousemove = onCanvasMouseMove;    
         viewerCanvas.onwheel = onCanvasMouseWheel;
 
@@ -66,6 +67,13 @@ PanoramaViewer = async function(baseUrl, canvasId)
             mouseDownHandler(e);
             mouse.drag = true;
         }
+    }
+
+    let onCanvasMouseUp = function(e)
+    {
+        mouseUpHandler(e);
+        mouse.drag = false;
+        e.preventDefault();
     }
 
     //Handles mouse rotation for 3d preview if drag started in 3d preview.
@@ -206,8 +214,11 @@ PanoramaViewer = async function(baseUrl, canvasId)
     let getCamera = function(){return cameraState;}
 
     let setMouseDownHandler = function(func){mouseDownHandler = func;}
+    let setMouseUpHandler = function(func){mouseUpHandler = func;}
     let setMouseDragHandler = function(func){mouseDragHandler = func;}
     let setViewChangedHandler = function(func){viewChangedHandler = func;}
+
+    let getShaderView = function(){return shaderView;}
 
     await initialize(baseUrl, canvasId);
     
@@ -230,7 +241,9 @@ PanoramaViewer = async function(baseUrl, canvasId)
         loadReferenceImage,
         setReferenceEnable,
         setMouseDownHandler,
+        setMouseUpHandler,
         setMouseDragHandler,
-        setViewChangedHandler
+        setViewChangedHandler,
+        getShaderView
     };
 }

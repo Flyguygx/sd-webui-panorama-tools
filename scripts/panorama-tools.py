@@ -154,20 +154,26 @@ def on_ui_tabs():
                         sketcherMode = gr.Radio(["Look", "Draw", "Erase"], label="Mode", value="Look")
                         sketcherBrushSize = gr.Slider(elem_id="panorama_tools_sketcher_brush_size", label="🞄⦁⚫︎⬤  ", minimum=0, maximum=100, value=5, step=1, interactive=True)
                         sketcherClear = ToolButton('❌', tooltip=f"Clear canvas.")
+                        sketcherRevert = ToolButton('↩️', tooltip=f"Revert to previous inpainting image")
                 with gr.Column(scale=1):
                     gr.Label(visible=False)
             with gr.Row(variant="compact"):
                 sketcher_canvas = gr.HTML('<canvas id="panotools_sketcher_canvas" width="1920" height="1080" style="width: 100%; height: 60%;margin: 0.25rem; border-radius: 0.25rem; border: 0.5px solid"></canvas>')
             with gr.Row(variant="compact"):
                 with gr.Column(scale=50):
+                    sketcherImage = gr.Image(
+                                source="upload",
+                                type="numpy",
+                                elem_id=f"panotools_sketcher_image",
+                                elem_classes=["panorama-image"],
+                            )
+                with gr.Column(scale=50):
+                    sketcher_preview = gr.HTML('<canvas id="panotools_sketcher_preview" width="2048" height="1024" style="width: 100%; height: 50%;margin: 0.25rem; border-radius: 0.25rem; border: 0.5px solid"></canvas>')
+                with gr.Column(scale=50):
                     with gr.Accordion("ControlNet", open=True, elem_id="panorama_tools_sendto_controlnet", visible=True):
                         with gr.Row(variant="compact"):
                             sendSketchToTxt2ImgControlNet = gr.Button(value="Send To Txt2Img Unit 0", min_width=100, interactive=len(sendto_controlnet_inputs["txt2img"])>0)
                             sendSketchToImg2ImgControlNet = gr.Button(value="Send To Img2Img Unit 0", min_width=100, interactive=len(sendto_controlnet_inputs["txt2img"])>0)
-                with gr.Column(scale=50):
-                    sketcher_preview = gr.HTML('<canvas id="panotools_sketcher_preview" width="1024" height="512" style="width: 100%; height: 50%;margin: 0.25rem; border-radius: 0.25rem; border: 0.5px solid"></canvas>')
-                with gr.Column(scale=50):
-                    gr.Label(visible=False)
 
         #Updates the cubemap face gallery with 6 images passed as base64 dataURLs
         def update_cubemap_face_gallery(*args):
@@ -254,7 +260,7 @@ def on_ui_tabs():
                                    _js="() => {return panorama_tools.renderCubemapFaces()}")
 
         sketcherMode.change(fn=None,inputs=[sketcherMode],outputs=[],show_progress=False,
-                                  _js="(v) => {panorama_tools.getSketcher().setMode(v);console.log(v);}")
+                                  _js="(v) => {panorama_tools.getSketcher().setMode(v);}")
         
         sketcherClear.click(fn=None,inputs=[],outputs=[],show_progress=False,
                                   _js="() => {panorama_tools.getSketcher().clearCanvas()}")
@@ -264,6 +270,9 @@ def on_ui_tabs():
         
         sendSketchToImg2ImgControlNet.click(fn=None,inputs=[],outputs=[sendto_controlnet_inputs["img2img"][0]], show_progress=False,
                                   _js="() => {switch_to_img2img(); return panorama_tools.getSketcher().getPanoramaImage();}")
+
+        sketcherRevert.click(fn=None,inputs=[],outputs=[],show_progress=False,
+                                  _js="() => {return panorama_tools.getSketcher().revertDraw()}")
 
         #Slider change events
         previewPitch.change(None, [previewPitch], None, _js="(v) => {panorama_tools.setPreviewPitch(v)}")
@@ -291,6 +300,7 @@ def on_ui_tabs():
         #Image input change events
         panorama_input_image.change(None, [panorama_input_image], None, _js="(url) => {panorama_tools.loadPanoramaImage(url)}")
         panorama_inpaint_input_image.change(None, [panorama_inpaint_input_image], None,  _js="(url) => {panorama_tools.loadInpaintImage(url)}")
+        sketcherImage.change(None, [sketcherImage], None,  _js="(url) => {panorama_tools.getSketcher().loadSketchImage(url)}")
         
         #Initial loading
         panorama_input_image.value=baseUrl+"/images/default_panorama.png"

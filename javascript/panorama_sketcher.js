@@ -18,6 +18,9 @@ PanoramaSketcher = async function(baseUrl, viewerCanvasId, previewCanvasId)
     let currentMousePos = [0,0]
     let previousMousePos = [0,0]
 
+    let undoBuffer = [];
+    let maxUndoSteps = 5;
+
     let initialize = async function(baseUrl, viewerCanvasId, previewCanvasId)
     {
         let vertShaderPath =   baseUrl + "/shaders/default.vert";
@@ -30,6 +33,7 @@ PanoramaSketcher = async function(baseUrl, viewerCanvasId, previewCanvasId)
         sketcherViewer.loadReferenceImage(referenceImagePath);
         sketcherViewer.setReferenceEnable(true);
         sketcherViewer.setMouseDownHandler(onMouseDown);
+        sketcherViewer.setMouseUpHandler(onMouseUp);
         sketcherViewer.setMouseDragHandler(onMouseDrag);
         sketcherViewer.setViewChangedHandler(onViewChanged);
 
@@ -73,6 +77,22 @@ PanoramaSketcher = async function(baseUrl, viewerCanvasId, previewCanvasId)
 
         sketcherPreview.setVariable("lineStart", currentMousePos);
         sketcherPreview.setVariable("lineEnd", previousMousePos);
+
+        if(drawMode)
+        {
+            if(undoBuffer.length >= maxUndoSteps)
+            {
+                undoBuffer.shift();
+            }
+
+            undoBuffer.push(sketcherPreview.getImageDataURL());
+            sketcherPreview.setVariable("drawing", 1);
+        }
+    }
+
+    let onMouseUp = function(e)
+    {
+        sketcherPreview.setVariable("drawing", 0);
     }
 
     let onMouseDrag = function(e)
@@ -136,6 +156,16 @@ PanoramaSketcher = async function(baseUrl, viewerCanvasId, previewCanvasId)
 
     let clearCanvas = function()
     {
+        if(drawMode)
+        {
+            if(undoBuffer.length >= maxUndoSteps)
+            {
+                undoBuffer.shift();
+            }
+
+            undoBuffer.push(sketcherPreview.getImageDataURL());
+        }
+
         sketcherPreview.setVariable("clear", 1)
         sketcherPreview.draw();
         sketcherPreview.setVariable("clear", 0)
@@ -147,6 +177,33 @@ PanoramaSketcher = async function(baseUrl, viewerCanvasId, previewCanvasId)
         return sketcherPreview.getImageDataURL();
     }
 
+    //Revert to previous image.
+    let revertDraw = function()
+    {
+        if(undoBuffer.length >= 1)
+        {
+            sketcherPreview.loadTexture('previousFrame', undoBuffer.pop(), function(loaded){
+                sketcherPreview.draw();
+            }, [0,0,0,255]);
+        }
+    }
+
+    //Laod sketch image
+    let loadSketchImage = function(url)
+    {
+        //loadTexture('preview_2d', 'equirectangular', url);
+        sketcherPreview.loadTexture('previousFrame', url, function(loaded){
+            sketcherPreview.draw();
+        }, [0,0,0,255]);
+
+        if(undoBuffer.length >= maxUndoSteps)
+        {
+            undoBuffer.shift();
+        }
+
+        undoBuffer.push(url);
+    }
+
     await initialize(baseUrl, viewerCanvasId, previewCanvasId);
     
     //Exported functions to be called from Python
@@ -156,6 +213,8 @@ PanoramaSketcher = async function(baseUrl, viewerCanvasId, previewCanvasId)
         setBrushColor,
         setMode,
         clearCanvas,
-        getPanoramaImage
+        getPanoramaImage,
+        revertDraw,
+        loadSketchImage
     };
 }
