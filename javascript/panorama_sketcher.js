@@ -54,7 +54,7 @@ PanoramaSketcher = async function(baseUrl, viewerCanvasId, previewCanvasId)
         sketcherPreview.setVariable("lineStart", [0,0]);
         sketcherPreview.setVariable("lineEnd", [0,0]);
 
-        setBrushSize(0.05);
+        setBrushSize(brush.size);
 
         sketcherPreview.draw();
     }

@@ -18,6 +18,8 @@ uniform vec2 viewResolution;
 uniform sampler2D previousFrame;
 
 const float PI = 3.1415926535;
+const float MAX_BRUSH_RADIUS = 0.125;
+const vec4 CLEAR_COLOR = vec4(0,0,0,1);
 
 out vec4 fragColor;
 
@@ -41,24 +43,8 @@ vec3 rotateY(vec3 p, float a)
     );
 }
 
-vec4 samplePanorama(sampler2D tex, vec2 uv, float offsetTop, float offsetBottom)
-{
-    uv.y = (uv.y-offsetBottom) / (1.0-offsetTop-offsetBottom);
-    uv.y = clamp(uv.y,0.0,1.0);
-    uv.y = 1.0 - uv.y;
-    
-    if(uv.y == 0.0 || uv.y == 1.0)
-    {
-        //Use lower resolution mip-map outside image bounds for average color.
-        return texture(tex,uv,8.0); 
-    }
-    else
-    {
-        return texture(tex,uv,0.0);
-    }
-}
-
-float sdLine(vec2 start, vec2 end, vec2 uv)
+//Distance from point "uv" to a  line segment
+float distanceToLine(vec2 start, vec2 end, vec2 uv)
 {
 	vec2 line = end - start;
 	float frac = dot(uv - start,line) / dot(line,line);
@@ -71,32 +57,36 @@ void main(void)
     vec4 col = texture(previousFrame,vec2(uv.x,1.0-uv.y),0.0);
     vec2 aspect = viewResolution/viewResolution.y;
 
-    vec2 ang = (uv-0.5)*vec2(2.0*PI,PI);
-    vec3 dir = vec3(sin(ang.x),sin(ang.y),cos(ang.x));
-    dir.xz *= cos(ang.y);
+    if(drawing != 0.0)
+    {
+        vec2 ang = (uv-0.5)*vec2(2.0*PI,PI);
+        float focalLen = 1.0/tan(0.5*viewFov*PI/180.0);
+        vec3 viewDir = vec3(sin(ang.x),sin(ang.y),cos(ang.x));
 
-    float focalLen = 1.0/tan(0.5*viewFov*PI/180.0);
-    vec3 maskDir = dir;
-    maskDir = rotateY(maskDir, radians(-viewYaw));
-    maskDir = rotateX(maskDir, radians(viewPitch));
-    maskDir = normalize(maskDir/vec3(1,1,focalLen));
+        viewDir.xz *= cos(ang.y);
+        viewDir = rotateY(viewDir, radians(-viewYaw));
+        viewDir = rotateX(viewDir, radians(viewPitch));
+        viewDir = normalize(viewDir/vec3(1,1,focalLen));
 
-    vec2 maskUV = vec2(atan(maskDir.x,maskDir.z), atan(maskDir.y,length(maskDir.xz)));
-    maskUV = fract(maskUV/vec2(PI/2.0,PI/2.0) + 0.5);
-    maskUV = vec2(0.5*maskDir.xy/maskDir.z+0.5);
+        vec2 viewUV = vec2(atan(viewDir.x,viewDir.z), atan(viewDir.y,length(viewDir.xz)));
+        viewUV = fract(viewUV/vec2(PI/2.0,PI/2.0) + 0.5);
+        viewUV = vec2(0.5*viewDir.xy/viewDir.z+0.5);
 
-    vec2 texUV = vec2(atan(dir.x,dir.z), atan(dir.y,length(dir.xz)));
-    texUV = fract(texUV/vec2(2.0*PI,PI) + 0.5);
+        vec2 p0 = (vec2(lineStart.x, 1.0-lineStart.y)-0.5)*aspect + 0.5;
+        vec2 p1 = (vec2(lineEnd.x, 1.0-lineEnd.y)-0.5)*aspect + 0.5;
 
-    vec2 p0 = (vec2(lineStart.x, 1.0-lineStart.y)-0.5)*aspect + 0.5;
-    vec2 p1 = (vec2(lineEnd.x, 1.0-lineEnd.y)-0.5)*aspect + 0.5;
+        float dist = distanceToLine(p0, p1, viewUV);
 
-    float d = sdLine(p0, p1, maskUV);
-    d -= brushSize*0.25;
-    d = smoothstep(1./256., 0.0, d) * float(maskDir.z > 0.0);
+        dist = 1.0 - step(brushSize * MAX_BRUSH_RADIUS, dist); //Line thickness
+        dist *= float(viewDir.z > 0.0); //Clip area behind camera
 
-    col = mix(col, vec4(brushColor,1), d*drawing);
-    col = mix(col, vec4(0,0,0,1), clear);
+        col = mix(col, vec4(brushColor, 1), dist);
+    }
+
+    if(clear != 0.0)
+    {
+        col = CLEAR_COLOR;
+    }
 
     fragColor = vec4(col.rgb,1.0);  
 }

@@ -147,15 +147,15 @@ def on_ui_tabs():
 
         with gr.Tab(label="Sketcher", elem_id="panotools_sketcher_tab"):
             with gr.Row(variant="compact"):
-                with gr.Column(scale=1):
-                    gr.Label(visible=False)
                 with gr.Column(scale=2):
+                    gr.Label(visible=False)
+                with gr.Column(scale=3):
                     with gr.Row(variant="compact"):
-                        sketcherMode = gr.Radio(["Look", "Draw", "Erase"], label="Mode", value="Look")
+                        sketcherMode = gr.Radio(["Look", "Draw", "Erase"], label="Mode", value="Look", min_width=100)
                         sketcherBrushSize = gr.Slider(elem_id="panorama_tools_sketcher_brush_size", label="🞄⦁⚫︎⬤  ", minimum=0, maximum=100, value=5, step=1, interactive=True)
                         sketcherClear = ToolButton('❌', tooltip=f"Clear canvas.")
-                        sketcherRevert = ToolButton('↩️', tooltip=f"Revert to previous inpainting image")
-                with gr.Column(scale=1):
+                        sketcherRevert = ToolButton('↩️', tooltip=f"Undo last action.")
+                with gr.Column(scale=2):
                     gr.Label(visible=False)
             with gr.Row(variant="compact"):
                 sketcher_canvas = gr.HTML('<canvas id="panotools_sketcher_canvas" width="1920" height="1080" style="width: 100%; height: 60%;margin: 0.25rem; border-radius: 0.25rem; border: 0.5px solid"></canvas>')
