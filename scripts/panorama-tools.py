@@ -61,7 +61,7 @@ def on_ui_tabs():
                                 copyPanoramaFromTxt2Img = gr.Button(value="From Txt2Img")
                                 copyPanoramaFromImg2Img = gr.Button(value="From Img2Img")
                                 copyPanoramaFromExtras = gr.Button(value="From Extras")
-                                copyPanoramaFromOutput = gr.Button(value="From Output")
+                                copyPanoramaFromOutput = gr.Button(value="Apply Changes")
                                 previousPanoramaImage = ToolButton('↩️', tooltip=f"Revert to previous panorama image")
 
                     with gr.Row():
