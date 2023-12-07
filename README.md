@@ -2,7 +2,7 @@
 
 An extension for AUTOMATIC1111's [Stable Diffusion Web UI](https://github.com/AUTOMATIC1111/stable-diffusion-webui) which provides a number of tools for editing equirectangular panoramas.
 
-[<img src="images/panorama_tools_ui_screenshot.png" width="600"/>](images/panorama_tools_ui_screenshot.png)
+[<img src="images/panorama_tools_ui_screenshot.jpg" width="600"/>](images/panorama_tools_ui_screenshot.jpg)
 
 ## Examples
 Some examples made using this extension, all were outpainted starting from a normal image. 
@@ -14,14 +14,13 @@ Only inpainting models were used, no LoRAs or panorama-specific prompts.
 [<img src="images/example_3.jpg" width="250"/>](images/example_3.jpg)
 [<img src="images/example_4.jpg" width="250"/>](images/example_4.jpg)
 
-## Controls
+## Editor Tab
 
 ### Input
  * **Image** - Equirectangular panorama image to be edited.
  * **From Txt2Img / Img2Img / Extras** - Copy the selected image from the respective tab.
- * **From Output** - Copy the edited panorama back to the input.
+ * **Apply Changes** - Apply the changes to the panarama back to the input.
  * ↩️ Revert to previous image.
-
 
 ### Preview
  * 3D Preview camera parameters
@@ -51,15 +50,46 @@ Only inpainting models were used, no LoRAs or panorama-specific prompts.
  * **From Panorama Image** - Calculate panorama & preview resolutions from panorama input image.
  * **From Inpaint Image** - Calculate panorama & preview resolutions from panorama inpaint image.
 
-## Outputs
-
 ### 3D Preview
 * **Navigation** - Click & drag to look around, mouse wheel to zoom.
 * **Send To Img2Img / Inpaint / Extras** - Send the current 3D preview to the respective tab & save the camera settings.
 
 ### 2D Preview
+[<img src="images/2d_preview_screenshot.JPG" width="300"/>](images/2d_preview_screenshot.JPG)
 * **Send To Img2Img / Inpaint / Extras** - Send the current 2D preview to the respective tab.
 * 💾 - Download the current panorama image.
+
+### Cubemap Generator
+[<img src="images/cubemap_generator_screenshot.JPG" width="300"/>](images/cubemap_generator_screenshot.JPG)
+* Converts the current equirectangular panorama to a set of cubemap face images.
+
+## Viewer Tab
+* Provides a larger 3D viewer window for the current panorama.
+
+[<img src="images/viewer_ui_screenshot.jpg" width="500"/>](images/viewer_ui_screenshot.jpg)
+
+## Sketcher Tab
+* A 3D sketching tool to guide panarama generation using ControlNet's scribble model.
+* Similar to the drawing tools in Blockade Labs' [Skybox AI](https://skybox.blockadelabs.com/).
+
+[<img src="images/sketcher_ui_screenshot.jpg" width="500"/>](images/sketcher_ui_screenshot.jpg)
+
+[<img src="images/sketcher_example_scribble.jpg" width="300"/>](images/sketcher_example_scribble.jpg) [<img src="images/sketcher_example_output.jpg" width="300"/>](images/sketcher_example_output.jpg)
+
+* **Mode - Look** - Click and drag to look around, mouse wheel to zoom
+* **Mode - Draw** - Click and drag to draw
+* **Mode - Erase** - Click and drag to erase
+* **🞄⦁⚫︎⬤** - Brush size %
+* ❌ - Clear view
+* ↩️ - Undo last change
+* **Send To Txt2Img/Img2Img Unit 0** - Send the panorama sketch to ControlNet Unit 0 on the respective tab.
+  * Greyed out if the ControlNet extension isn't found/loaded.
+* **Image** - Load a pre-existing sketch image to modify.
+
+## Recommended Extensions
+
+* [ControlNet for Stable Diffusion WebUI](https://github.com/Mikubill/sd-webui-controlnet)
+* [Asymmetric Tiling for stable-diffusion-webui](https://github.com/tjm35/asymmetric-tiling-sd-webui)
 
 ## Workflows
 
