@@ -264,12 +264,14 @@ def on_ui_tabs():
         
         sketcherClear.click(fn=None,inputs=[],outputs=[],show_progress=False,
                                   _js="() => {panorama_tools.getSketcher().clearCanvas()}")
-
-        sendSketchToTxt2ImgControlNet.click(fn=None,inputs=[],outputs=[sendto_controlnet_inputs["txt2img"][0]], show_progress=False,
-                                  _js="() => {switch_to_txt2img(); return panorama_tools.getSketcher().getPanoramaImage();}")
         
-        sendSketchToImg2ImgControlNet.click(fn=None,inputs=[],outputs=[sendto_controlnet_inputs["img2img"][0]], show_progress=False,
-                                  _js="() => {switch_to_img2img(); return panorama_tools.getSketcher().getPanoramaImage();}")
+         #controlnet must be present
+        if(len(sendto_controlnet_inputs["txt2img"]) > 0):
+            sendSketchToTxt2ImgControlNet.click(fn=None,inputs=[],outputs=[sendto_controlnet_inputs["txt2img"][0]], show_progress=False,
+                                    _js="() => {switch_to_txt2img(); return panorama_tools.getSketcher().getPanoramaImage();}")
+            
+            sendSketchToImg2ImgControlNet.click(fn=None,inputs=[],outputs=[sendto_controlnet_inputs["img2img"][0]], show_progress=False,
+                                    _js="() => {switch_to_img2img(); return panorama_tools.getSketcher().getPanoramaImage();}")
 
         sketcherRevert.click(fn=None,inputs=[],outputs=[],show_progress=False,
                                   _js="() => {return panorama_tools.getSketcher().revertDraw()}")
