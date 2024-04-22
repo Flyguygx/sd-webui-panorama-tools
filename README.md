@@ -104,7 +104,7 @@ Using an inpainting model is recommended.
     * For generated images, send the image to inpainting to copy the prompt/settings.
 3. Click Resolution -> From Inpaint Image to set the resolution of the preview & panorama.
 4. Adjust field of view & pitch in the inpainting controls until the perspective looks right in the 3d preview.
-5. Click "From Output" under the panorama input to apply the inpainting image.
+5. Click "Apply Changes" under the panorama input to apply the inpainting image.
 6. Angle the 3D preview to show roughly 1/2 - 1/3 of the previous image.
     * Typically increments of 45 / 60 degrees on the yaw, depending on image contents.
     * May have to zoom out for the poles.
@@ -132,7 +132,7 @@ Using an inpainting model is recommended.
 4. If the poles are missing/cropped out:
     1. Adjust Upper/Lower Pole Offset until the perspective looks right in the 3D preview.
         * Typicially when the horizon/vanishing point is roughly centered vertically with the preview pitch set to 0.
-    2. Click "From Output" under the panorama input to apply the adjustments.
+    2. Click "Apply Changes" under the panorama input to apply the adjustments.
     3. Zero out all settings under Adjustments.
 5. Angle / zoom the preview to see the pole to inpaint.
     * Up / Down buttons in the Preview settings
@@ -148,7 +148,7 @@ Using an inpainting model is recommended.
 12. Go back to the Panorama Tools tab.
 12. Under Inpainting, click "From Img2Img".
 14. Click the 🖼️ button to copy the camera settings used for the image.
-15. Click "From Output" under the panorama input to apply the inpainting image.
+15. Click "Apply Changes" under the panorama input to apply the inpainting image.
 16. Repeat from 5. for both poles.
 
 ### Inpainting in an external program
@@ -162,4 +162,4 @@ Using an inpainting model is recommended.
 6. Click the 👁️ button to copy the camera angles from the preview.
 7. Enable inpainting. 
 8. Adjust the Mask Blur as needed to blend in the edited image.
-10. Click "From Output" under the panorama input to apply the inpainting image.
+10. Click "Apply Changes" under the panorama input to apply the inpainting image.
