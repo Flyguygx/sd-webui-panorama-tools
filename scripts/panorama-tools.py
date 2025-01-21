@@ -23,6 +23,9 @@ sendto_controlnet_inputs = {
 
 defaultImage = "/images/default_panorama.png"
 
+# Some black magic to support Gradio 3 and 4 at the same time in this project...
+js = "_js" if int(gr.__version__[0]) < 4 else "js" # Gradio 3 uses "_js", while Gradio 4+ uses "js".
+
 class PanoramaToolsScript(scripts.Script):
     def __init__(self) -> None:
         super().__init__()
@@ -186,127 +189,127 @@ def on_ui_tabs():
 
         #UI event handling
         #Button click events
-        previewFront.click(fn=None,show_progress=False, _js="() => {panorama_tools.setPredefinedView('front')}")
-        previewBack.click(fn=None,show_progress=False, _js="() => {panorama_tools.setPredefinedView('back')}")
-        previewLeft.click(fn=None,show_progress=False, _js="() => {panorama_tools.setPredefinedView('left')}")
-        previewRight.click(fn=None,show_progress=False, _js="() => {panorama_tools.setPredefinedView('right')}")
-        previewUp.click(fn=None,show_progress=False, _js="() => {panorama_tools.setPredefinedView('up')}")
-        previewDown.click(fn=None,show_progress=False, _js="() => {panorama_tools.setPredefinedView('down')}")
+        previewFront.click(fn=None,show_progress=False, **{js: "() => {panorama_tools.setPredefinedView('front')}"})
+        previewBack.click(fn=None,show_progress=False, **{js: "() => {panorama_tools.setPredefinedView('back')}"})
+        previewLeft.click(fn=None,show_progress=False, **{js: "() => {panorama_tools.setPredefinedView('left')}"})
+        previewRight.click(fn=None,show_progress=False, **{js: "() => {panorama_tools.setPredefinedView('right')}"})
+        previewUp.click(fn=None,show_progress=False, **{js: "() => {panorama_tools.setPredefinedView('up')}"})
+        previewDown.click(fn=None,show_progress=False, **{js: "() => {panorama_tools.setPredefinedView('down')}"})
 
         copyLastPreviewSettings.click(fn=None,inputs=[],outputs=[],show_progress=False,
-                                  _js="() => {panorama_tools.copyLastPreviewSettingsToInpaint()}")
-        
+                                  **{js: "() => {panorama_tools.copyLastPreviewSettingsToInpaint()}"})
+
         copyPreviewSettings.click(fn=None,inputs=[],outputs=[],show_progress=False,
-                                  _js="() => {panorama_tools.copyPreviewSettingsToInpaint()}")
-        
+                                  **{js: "() => {panorama_tools.copyPreviewSettingsToInpaint()}"})
+
         copyPanoramaInputRes.click(fn=None,inputs=[],outputs=[previewWidth, previewHeight, panoramaWidth, panoramaHeight],show_progress=False,
-                                   _js="() => {return panorama_tools.viewResolutionFromInput()}")
-        
+                                   **{js: "() => {return panorama_tools.viewResolutionFromInput()}"})
+
         copyInpaintInputRes.click(fn=None,inputs=[],outputs=[previewWidth, previewHeight, panoramaWidth, panoramaHeight],show_progress=False,
-                                   _js="() => {return panorama_tools.viewResolutionFromInpaint()}")
-        
+                                   **{js: "() => {return panorama_tools.viewResolutionFromInpaint()}"})
+
         copyPanoramaFromTxt2Img.click(fn=None,inputs=[],outputs=[panorama_input_image],show_progress=False,
-                                      _js="() => {return panorama_tools.getSelectedImageOnTab('txt2img')}")
-        
+                                      **{js: "() => {return panorama_tools.getSelectedImageOnTab('txt2img')}"})
+
         copyPanoramaFromImg2Img.click(fn=None,inputs=[],outputs=[panorama_input_image],show_progress=False,
-                                      _js="() => {return panorama_tools.getSelectedImageOnTab('img2img')}")
-        
+                                      **{js: "() => {return panorama_tools.getSelectedImageOnTab('img2img')}"})
+
         copyPanoramaFromExtras.click(fn=None,inputs=[],outputs=[panorama_input_image],show_progress=False,
-                                     _js="() => {return panorama_tools.getSelectedImageOnTab('extras')}")
-        
+                                     **{js: "() => {return panorama_tools.getSelectedImageOnTab('extras')}"})
+
         copyPanoramaFromOutput.click(fn=None,inputs=[],outputs=[panorama_input_image],show_progress=False,
-                                     _js="() => {return panorama_tools.getShaderViewImage('preview_2d')}")
-        
+                                     **{js: "() => {return panorama_tools.getShaderViewImage('preview_2d')}"})
+
         previousPanoramaImage.click(fn=None,inputs=[],outputs=[panorama_input_image],show_progress=False,
-                                     _js="() => {return panorama_tools.revertPanoramaImage()}")
+                                     **{js: "() => {return panorama_tools.revertPanoramaImage()}"})
 
         copyInpaintFromTxt2Img.click(fn=None,inputs=[],outputs=[panorama_inpaint_input_image],show_progress=False,
-                                     _js="() => {return panorama_tools.getSelectedImageOnTab('txt2img')}")
-        
+                                     **{js: "() => {return panorama_tools.getSelectedImageOnTab('txt2img')}"})
+
         copyInpaintFromImg2Img.click(fn=None,inputs=[],outputs=[panorama_inpaint_input_image],show_progress=False,
-                                     _js="() => {return panorama_tools.getSelectedImageOnTab('img2img')}")
-        
+                                     **{js: "() => {return panorama_tools.getSelectedImageOnTab('img2img')}"})
+
         copyInpaintFromExtras.click(fn=None,inputs=[],outputs=[panorama_inpaint_input_image],show_progress=False,
-                                     _js="() => {return panorama_tools.getSelectedImageOnTab('extras')}")
-        
+                                     **{js: "() => {return panorama_tools.getSelectedImageOnTab('extras')}"})
+
         previousInpaintImage.click(fn=None,inputs=[],outputs=[panorama_inpaint_input_image],show_progress=False,
-                                     _js="() => {return panorama_tools.revertInpaintImage()}")
+                                     **{js: "() => {return panorama_tools.revertInpaintImage()}"})
 
         send2DImgToImg2Img.click(fn=None,inputs=[],outputs=[sendto_inputs["img2img"]["component"]],show_progress=False,
-                                 _js="() => {return panorama_tools.sendShaderViewTo('preview_2d','img2img')}")
-        
+                                 **{js: "() => {return panorama_tools.sendShaderViewTo('preview_2d','img2img')}"})
+
         send2DImgToInpaint.click(fn=None,inputs=[],outputs=[sendto_inputs["inpaint"]["component"]],show_progress=False,
-                                 _js="() => {return panorama_tools.sendShaderViewTo('preview_2d','inpaint')}")
-        
+                                 **{js: "() => {return panorama_tools.sendShaderViewTo('preview_2d','inpaint')}"})
+
         send2DImgToExtras.click(fn=None,inputs=[],outputs=[sendto_inputs["extras"]["component"]],show_progress=False,
-                                _js="() => {return panorama_tools.sendShaderViewTo('preview_2d','extras')}")
-        
+                                **{js: "() => {return panorama_tools.sendShaderViewTo('preview_2d','extras')}"})
+
         save2DImage.click(fn=None,inputs=[],outputs=[],show_progress=False,
-                                _js="() => {return panorama_tools.downloadShaderViewImage('preview_2d', 'panorama.png')}")
+                                **{js: "() => {return panorama_tools.downloadShaderViewImage('preview_2d', 'panorama.png')}"})
 
         send3DImgToImg2Img.click(fn=None,inputs=[],outputs=[sendto_inputs["img2img"]["component"]],show_progress=False,
-                                 _js="() => {panorama_tools.savePreviewSettings(); return panorama_tools.sendShaderViewTo('preview_3d','img2img');}")
-        
+                                 **{js: "() => {panorama_tools.savePreviewSettings(); return panorama_tools.sendShaderViewTo('preview_3d','img2img');}"})
+
         send3DImgToInpaint.click(fn=None,inputs=[],outputs=[sendto_inputs["inpaint"]["component"]],show_progress=False,
-                                 _js="() => {panorama_tools.savePreviewSettings(); return panorama_tools.sendShaderViewTo('preview_3d','inpaint');}")
+                                 **{js: "() => {panorama_tools.savePreviewSettings(); return panorama_tools.sendShaderViewTo('preview_3d','inpaint');}"})
 
         send3DImgToExtras.click(fn=None,inputs=[],outputs=[sendto_inputs["extras"]["component"]],show_progress=False,
-                                _js="() => {panorama_tools.savePreviewSettings(); return panorama_tools.sendShaderViewTo('preview_3d','extras');}")
-        
+                                **{js: "() => {panorama_tools.savePreviewSettings(); return panorama_tools.sendShaderViewTo('preview_3d','extras');}"})
+
         #Need dummyComponents in input or Gradio won't pass all of the objects in the array returned from JS
         generateCubemapFaces.click(fn=update_cubemap_face_gallery,
                                    inputs=[dummyComponent,dummyComponent,dummyComponent,dummyComponent,dummyComponent,dummyComponent],
                                    outputs=[cubemapFaceGallery],show_progress=True,
-                                   _js="() => {return panorama_tools.renderCubemapFaces()}")
+                                   **{js: "() => {return panorama_tools.renderCubemapFaces()}"})
 
         sketcherMode.change(fn=None,inputs=[sketcherMode],outputs=[],show_progress=False,
-                                  _js="(v) => {panorama_tools.getSketcher().setMode(v);}")
-        
+                                  **{js: "(v) => {panorama_tools.getSketcher().setMode(v);}"})
+
         sketcherClear.click(fn=None,inputs=[],outputs=[],show_progress=False,
-                                  _js="() => {panorama_tools.getSketcher().clearCanvas()}")
-        
+                                  **{js: "() => {panorama_tools.getSketcher().clearCanvas()}"})
+
          #controlnet must be present
         if(len(sendto_controlnet_inputs["txt2img"]) > 0):
             sendSketchToTxt2ImgControlNet.click(fn=None,inputs=[],outputs=[sendto_controlnet_inputs["txt2img"][0]], show_progress=False,
-                                    _js="() => {switch_to_txt2img(); return panorama_tools.getSketcher().getPanoramaImage();}")
-            
+                                    **{js: "() => {switch_to_txt2img(); return panorama_tools.getSketcher().getPanoramaImage();}"})
+
             sendSketchToImg2ImgControlNet.click(fn=None,inputs=[],outputs=[sendto_controlnet_inputs["img2img"][0]], show_progress=False,
-                                    _js="() => {switch_to_img2img(); return panorama_tools.getSketcher().getPanoramaImage();}")
+                                    **{js: "() => {switch_to_img2img(); return panorama_tools.getSketcher().getPanoramaImage();}"})
 
         sketcherRevert.click(fn=None,inputs=[],outputs=[],show_progress=False,
-                                  _js="() => {return panorama_tools.getSketcher().revertDraw()}")
+                                  **{js: "() => {return panorama_tools.getSketcher().revertDraw()}"})
 
         #Slider change events
-        previewPitch.change(None, [previewPitch], None, _js="(v) => {panorama_tools.setPreviewPitch(v)}")
-        previewYaw.change(None, [previewYaw], None, _js="(v) => {panorama_tools.setPreviewYaw(v)}")
-        previewFov.change(None, [previewFov], None, _js="(v) => {panorama_tools.setPreviewFov(v)}")
+        previewPitch.change(None, [previewPitch], None, **{js: "(v) => {panorama_tools.setPreviewPitch(v)}"})
+        previewYaw.change(None, [previewYaw], None, **{js: "(v) => {panorama_tools.setPreviewYaw(v)}"})
+        previewFov.change(None, [previewFov], None, **{js: "(v) => {panorama_tools.setPreviewFov(v)}"})
 
-        reorientPitch.change(None, [reorientPitch], None, _js="(v) => {panorama_tools.setReorientPitch(v)}")
-        reorientYaw.change(None, [reorientYaw], None, _js="(v) => {panorama_tools.setReorientYaw(v)}")
-        offsetBottom.change(None, [offsetBottom], None, _js="(v) => {panorama_tools.setPoleOffsetBottom(v)}")
-        offsetTop.change(None, [offsetTop], None, _js="(v) => {panorama_tools.setPoleOffsetTop(v)}")
+        reorientPitch.change(None, [reorientPitch], None, **{js: "(v) => {panorama_tools.setReorientPitch(v)}"})
+        reorientYaw.change(None, [reorientYaw], None, **{js: "(v) => {panorama_tools.setReorientYaw(v)}"})
+        offsetBottom.change(None, [offsetBottom], None, **{js: "(v) => {panorama_tools.setPoleOffsetBottom(v)}"})
+        offsetTop.change(None, [offsetTop], None, **{js: "(v) => {panorama_tools.setPoleOffsetTop(v)}"})
 
-        inpaintEnable.change(None, [inpaintEnable], None, _js="(v) => {panorama_tools.setInpaintEnable(v)}")
-        inpaintPitch.change(None, [inpaintPitch], None, _js="(v) => {panorama_tools.setInpaintPitch(v)}")
-        inpaintYaw.change(None, [inpaintYaw], None, _js="(v) => {panorama_tools.setInpaintYaw(v)}")
-        inpaintFov.change(None, [inpaintFov], None, _js="(v) => {panorama_tools.setInpaintFov(v)}")
-        inpaintMaskBlur.change(None, [inpaintMaskBlur], None, _js="(v) => {panorama_tools.setInpaintMaskBlur(v)}")
+        inpaintEnable.change(None, [inpaintEnable], None, **{js: "(v) => {panorama_tools.setInpaintEnable(v)}"})
+        inpaintPitch.change(None, [inpaintPitch], None, **{js: "(v) => {panorama_tools.setInpaintPitch(v)}"})
+        inpaintYaw.change(None, [inpaintYaw], None, **{js: "(v) => {panorama_tools.setInpaintYaw(v)}"})
+        inpaintFov.change(None, [inpaintFov], None, **{js: "(v) => {panorama_tools.setInpaintFov(v)}"})
+        inpaintMaskBlur.change(None, [inpaintMaskBlur], None, **{js: "(v) => {panorama_tools.setInpaintMaskBlur(v)}"})
 
-        previewWidth.change(None, [previewWidth, previewHeight], None, _js="(w,h) => {panorama_tools.updateResolution('preview_3d', w, h)}")
-        previewHeight.change(None, [previewWidth, previewHeight], None, _js="(w,h) => {panorama_tools.updateResolution('preview_3d', w, h)}")
-        panoramaWidth.change(None, [panoramaWidth, panoramaHeight], None, _js="(w,h) => {panorama_tools.updateResolution('preview_2d', w, h, true)}")
-        panoramaHeight.change(None, [panoramaWidth, panoramaHeight], None, _js="(w,h) => {panorama_tools.updateResolution('preview_2d', w, h, true)}")
+        previewWidth.change(None, [previewWidth, previewHeight], None, **{js: "(w,h) => {panorama_tools.updateResolution('preview_3d', w, h)}"})
+        previewHeight.change(None, [previewWidth, previewHeight], None, **{js: "(w,h) => {panorama_tools.updateResolution('preview_3d', w, h)}"})
+        panoramaWidth.change(None, [panoramaWidth, panoramaHeight], None, **{js: "(w,h) => {panorama_tools.updateResolution('preview_2d', w, h, true)}"})
+        panoramaHeight.change(None, [panoramaWidth, panoramaHeight], None, **{js: "(w,h) => {panorama_tools.updateResolution('preview_2d', w, h, true)}"})
 
-        sketcherBrushSize.change(None, [sketcherBrushSize], None, _js="(v) => {panorama_tools.getSketcher().setBrushSize(v/100.0)}")
+        sketcherBrushSize.change(None, [sketcherBrushSize], None, **{js: "(v) => {panorama_tools.getSketcher().setBrushSize(v/100.0)}"})
 
         #Image input change events
-        panorama_input_image.change(None, [panorama_input_image], None, _js="(url) => {panorama_tools.loadPanoramaImage(url)}")
-        panorama_inpaint_input_image.change(None, [panorama_inpaint_input_image], None,  _js="(url) => {panorama_tools.loadInpaintImage(url)}")
-        sketcherImage.change(None, [sketcherImage], None,  _js="(url) => {panorama_tools.getSketcher().loadSketchImage(url)}")
-        
+        panorama_input_image.change(None, [panorama_input_image], None, **{js: "(url) => {panorama_tools.loadPanoramaImage(url)}"})
+        panorama_inpaint_input_image.change(None, [panorama_inpaint_input_image], None,  **{js: "(url) => {panorama_tools.loadInpaintImage(url)}"})
+        sketcherImage.change(None, [sketcherImage], None,  **{js: "(url) => {panorama_tools.getSketcher().loadSketchImage(url)}"})
+
         #Initial loading
         panorama_input_image.value=baseUrl+"/images/default_panorama.png"
-        panorama_tools_ui.load(None, inputs=[], outputs=[], _js="() => {panorama_tools.initialize('"+baseUrl+"','"+baseUrl+defaultImage+"')}")
+        panorama_tools_ui.load(None, inputs=[], outputs=[], **{js: "() => {panorama_tools.initialize('"+baseUrl+"','"+baseUrl+defaultImage+"')}"})
 
     return [(panorama_tools_ui, "Panorama Tools", "panorama-tools")]
 
